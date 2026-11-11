@@ -1,6 +1,6 @@
 'use strict';
 function updateEnemy(e,s,dt){
-  const p=s.p,angle=Math.atan2(p.y-e.y,p.x-e.x),distance=Math.hypot(p.x-e.x,p.y-e.y);e.fire-=dt;
+  if(e.boss)updateBoss(e,s,dt);const p=s.p,angle=Math.atan2(p.y-e.y,p.x-e.x),distance=Math.hypot(p.x-e.x,p.y-e.y);e.fire-=dt;
   let speed=e.speed,direction=angle;
   if(e.f===1&&distance<230)speed=distance<165?-e.speed*.55:0;
   if(e.f===2){
