@@ -15,7 +15,7 @@ function drawWorld(p){
     const n=hash(x,y),px=x*tile,py=y*tile;rect(px,py,tile,tile,st.ground[Math.floor(n*3)]);
     const path=Math.abs(py-Math.sin(px*.003)*60)<50;
     if(path){rect(px,py,64,64,st.path);rect(px+5,py+8,46,2,stages[stageId===2?2:0].ground[0]);if(n>.5)rect(px+20,py+43,20,2,st.grass)}
-    else for(let k=0;k<5;k++){let gx=px+hash(x+k,y)*58,gy=py+hash(x,y+k+8)*60;rect(gx,gy,2,5,st.grass);rect(gx-2,gy+3,6,2,st.grass)}
+    else for(let k=0;k<5;k++){let gx=px+hash(x+k,y)*58,gy=py+hash(x,y+k*8)*60;rect(gx,gy,2,5,st.grass);rect(gx-2,gy+3,6,2,st.grass)}
     if(!path&&n>.85&&n<.91){for(let k=0;k<4;k++){rect(px+10+k*9,py+20+k%2*9,5,3,stageId===2?'#b9807d':'#f1d6b5');rect(px+12+k*9,py+19+k%2*9,2,5,'#e9c397')}}
     if(!path&&n<.075){rect(px+12,py+29,30,13,st.grass);rect(px+15,py+19,26,18,stageId===1?'#e5e8d9':'#abb59c');rect(px+19,py+17,18,4,stageId===1?'#f0f3e7':'#c2c5a9')}
   }

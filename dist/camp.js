@@ -5,7 +5,11 @@ function openCamp(page='training'){
   if(page==='training'){
     $('#campSub').textContent='보유 은전 '+Profile.data.silver+' · 수련은 모든 세력에 적용됩니다';
     for(const [id,[name,detail]] of Object.entries(trainingInfo)){
-      const n=Profile.data.training[id],b=document.createElement('button');b.className='training';b.disabled=n>=5||Profile.data.silver<Profile.cost(id);b.innerHTML='<strong>'+name+' <span>'+n+'/5</span></strong><small>'+detail+'</small><b>'+(n>=5?'수련 완료':Profile.cost(id)+' 은전으로 수련')+'</b>';b.onclick=()=>{if(Profile.buy(id)){updateProfile();openCamp('training')}};box.append(b)
+      const n=Profile.data.training[id],b=document.createElement('button');b.className='training';b.disabled=n>=5||Profile.data.silver<Profile.cost(id);
+      const icon=typeof WuxiaUI!=='undefined'?WuxiaUI.trainingIcon(id):'';
+      const pips=typeof WuxiaUI!=='undefined'?WuxiaUI.pips(n,5):(n+'/5');
+      b.innerHTML='<div class="wx-train-row">'+icon+'<div class="wx-train-body"><strong>'+name+' <span>'+pips+' ('+n+'/5)</span></strong><small>'+detail+'</small><b>'+(n>=5?'수련 완료':Profile.cost(id)+' 은전으로 수련')+'</b></div></div>';
+      b.onclick=()=>{if(Profile.buy(id)){updateProfile();openCamp('training')}};box.append(b)
     }
   } else {
     $('#campSub').textContent='총 '+Profile.data.totalKills+' 처치 · '+Profile.data.wins+'회 생존 성공 · 이 기기에 저장';

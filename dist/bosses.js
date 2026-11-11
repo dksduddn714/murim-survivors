@@ -5,7 +5,7 @@ function summonBoss(final){
 function updateBoss(e,s,dt){
   if(e.phase===1&&e.hp<e.max*.5){e.phase=2;e.speed*=1.2;showNotice(e.name+' · 광폭화!')}
   e.blastCooldown-=dt;
-  if(e.blast>0){e.blast-=dt;if(e.blast<=0&&s.hostile.length<180){const count=e.phase===2?16:10;for(let i=0;i<count;i++){let a=i*Math.PI*2/count;s.hostile.push({x:e.x,y:e.y,vx:Math.cos(a)*105,vy:Math.sin(a)*105,t:3.6,f:e.f})}e.blastCooldown=e.phase===2?3.5:5}}
+  if(e.blast>0){e.blast-=dt;if(e.blast<=0&&s.hostile.length<180){const count=e.phase===2?16:10;for(let i=0;i<count;i++){let a=i*Math.PI*2/count;s.hostile.push({x:e.x,y:e.y,vx:Math.cos(a)*105,vy:Math.sin(a)*105,t:3.6,f:e.f})}}e.blastCooldown=e.phase===2?3.5:5}
   else if(e.blastCooldown<=0){e.blast=1.05}
 }
 function bossHUD(){

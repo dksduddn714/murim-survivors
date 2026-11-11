@@ -1,17 +1,37 @@
 'use strict';
 function updateEnemy(e,s,dt){
-  if(e.knockX||e.knockY){e.x+=(e.knockX||0)*dt;e.y+=(e.knockY||0)*dt;const decay=Math.exp(-14*dt);e.knockX*=decay;e.knockY*=decay}if(e.stun>0){e.stun-=dt;return}if(e.boss)updateBoss(e,s,dt);const p=s.p,angle=Math.atan2(p.y-e.y,p.x-e.x),distance=Math.hypot(p.x-e.x,p.y-e.y);e.fire-=dt;
-  let speed=e.speed,direction=angle;if(e.rush>0){e.rush-=dt;speed*=1.5}if(e.runner)speed*=1.3;
-  if(e.f===1&&distance<230)speed=distance<165?-e.speed*.55:0;
-  if(e.f===2){
+  if(e.knockX||e.knockY){e.x+=(e.knockX||0)*dt;e.y+=(e.knockY||0)*dt;const decay=Math.exp(-15*dt);e.knockX*=decay;e.knockY*=decay}
+  if(e.poisoned>0)e.poisoned=Math.max(0,e.poisoned-dt);
+  if(e.chilled>0)e.chilled=Math.max(0,e.chilled-dt);
+  if(e.feared>0)e.feared=Math.max(0,e.feared-dt);
+  if(e.blackFlame>0){e.blackFlame=Math.max(0,e.blackFlame-dt);e.hp-=dt*14}
+  if(e.bleed>0){e.bleed=Math.max(0,e.bleed-dt*.35);e.hp-=dt*(4+e.bleed*3)}
+  if(e.stun>0){e.stun-=dt;return}
+  if(e.boss)updateBoss(e,s,dt);
+  const p=s.p,angle=Math.atan2(p.y-e.y,p.x-e.x),distance=Math.hypot(p.x-e.x,p.y-e.y);
+  e.fire-=dt;
+  let speed=e.speed,direction=e.feared>0?angle+Math.PI:angle;
+  if(e.rush>0){e.rush-=dt;speed*=1.45}
+  if(e.runner||e.role==='assassin'){
+    speed*=1.3;
+    if(e.feared<=0&&distance>75&&(s.facing?.x||s.facing?.y))direction=Math.atan2(p.y+(s.facing.y||0)*42-e.y,p.x+(s.facing.x||0)*42-e.x);
+  }
+  if(e.role==='spearman'&&distance<145)speed*=1.22;
+  if(e.poisoned>0)speed*=Math.max(.68,.88-(s.skills[6]||1)*.03);
+  if(e.chilled>0)speed*=.65;
+  const isRanged=e.f===1||e.role==='archer'||e.role==='sorcerer';
+  const isCharger=e.f===2||e.role==='brute';
+  if(isRanged&&!isCharger&&e.feared<=0&&distance<225)speed=distance<160?-e.speed*.55:0;
+  if(isCharger&&e.feared<=0){
     if(e.charge>0){e.charge-=dt;direction=e.chargeAngle;speed=e.charge>.45?0:e.speed*4}
     else if(e.fire<=0&&distance<320){e.charge=1.15;e.chargeAngle=angle;e.fire=e.elite?2.4:3.4;speed=0}
   }
   e.x+=Math.cos(direction)*speed*dt;e.y+=Math.sin(direction)*speed*dt;
-  if(e.f!==2&&e.fire<=0&&distance<400&&s.hostile.length<200){
-    e.fire=e.boss?1.15:e.elite?1.7:3.1;
-    const count=e.boss?5:e.elite?3:1;
-    for(let j=0;j<count;j++){const aim=Math.atan2(p.y+(s.facing?.y||0)*55-e.y,p.x+(s.facing?.x||0)*55-e.x);const a=aim+(j-(count-1)/2)*.2;s.hostile.push({x:e.x,y:e.y,vx:Math.cos(a)*(e.f===1?145:110),vy:Math.sin(a)*(e.f===1?145:110),t:3,f:e.f})}
+  e.aiming=!isCharger&&e.fire>0&&e.fire<=.35&&distance<400?e.fire:0;
+  if(!isCharger&&e.fire<=0&&distance<400&&s.hostile.length<200){
+    e.fire=e.boss?1.15:e.role==='sorcerer'?1.9:e.elite?1.7:3.1;
+    const count=e.boss?5:e.elite?3:e.role==='sorcerer'?2:1;
+    for(let j=0;j<count;j++){const aim=Math.atan2(p.y+(s.facing?.y||0)*55-e.y,p.x+(s.facing?.x||0)*55-e.x);const a=aim+(j-(count-1)/2)*.2;s.hostile.push({x:e.x,y:e.y,vx:Math.cos(a)*(e.f===1?145:115),vy:Math.sin(a)*(e.f===1?145:115),t:3,f:e.f})}
   }
 }
 // Swept projectile collision avoids skipping small targets during slower frames.
