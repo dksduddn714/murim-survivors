@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="ko">
+<html lang="ko" data-version="0.5.0">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#122d29"><meta name="description" content="정파·사파·마교의 가로형 도트 무협 생존 게임">
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg"><link rel="apple-touch-icon" href="icon-192.png">
-<title>무림혈전 · 강호 출도</title><link rel="stylesheet" href="style.css?v=04">
+<title>무림혈전 · 강호 출도</title><link rel="stylesheet" href="style.css?v=05">
 </head>
 <body>
 <canvas id="world" aria-label="무림혈전 전투 화면"></canvas>
@@ -12,15 +12,15 @@
   <section class="vitals"><div class="sectline"><span class="crest">武</span><small id="sectLabel"></small><small id="hpvalue"></small></div><div class="bar"><i id="hp"></i></div><div class="progressrow"><b id="level">경지 1</b><div class="xp"><i id="xp"></i></div></div></section>
   <section class="battleclock"><small id="waveLabel">포위망 1 / 5</small><b id="clock">00:00</b><span id="regionLabel">청죽림</span></section>
   <section class="battletools"><div class="killstat"><b id="kills">0</b><small>격파</small></div><button id="soundQuick" aria-label="효과음 켜기">♪</button><button id="fullscreen" aria-label="전체 화면">⛶</button><button id="pause" aria-label="일시정지">Ⅱ</button></section>
-  <div id="enemyCount">포위망 형성 중</div><div id="combo" aria-live="polite"></div>
+  <div id="enemyCount">포위망 형성 중</div><div id="pressure"><span>전장 압박</span><div><i id="pressureFill"></i></div><b id="pressureValue">혈전</b></div><div id="combo" aria-live="polite"></div>
   <div id="bossbar" hidden><small id="bossName"></small><div><i id="bossHP"></i></div></div>
   <div class="movehint"><span>✥</span><small>드래그로 이동</small></div>
-  <section class="skilldock"><small>나의 무공</small><div id="skills"></div></section>
+  <section class="skilldock"><small>나의 무공 <span id="buildHint">무공을 조합해 절학을 완성하세요</span></small><div id="skills"></div></section>
   <button id="dash"><span class="dashicon">➶</span><b id="dashLabel">경공</b><small id="dashHint">회피 · SPACE</small></button>
 </div>
 <main id="menu" class="veil">
   <section class="intro">
-    <header class="menuheader"><div class="eyebrow">PIXEL WUXIA SURVIVORS <span>v0.4</span></div><nav class="menunav"><button id="install">홈 화면 추가</button><button id="options">설정</button><button id="training">☯ 수련</button><button id="records">전적</button></nav></header>
+    <header class="menuheader"><div class="eyebrow">PIXEL WUXIA SURVIVORS <span>v0.5</span></div><nav class="menunav"><button id="install">홈 화면 추가</button><button id="options">설정</button><button id="training">☯ 수련</button><button id="records">전적</button></nav></header>
     <div class="herorow"><div><div class="chapter">第一章 · 강호에 첫발을</div><h1>무림<span>혈전</span><em>武林血戰</em></h1><p>몰려오는 강호를 베어라.<br>무공을 깨우치고, 포위망의 끝에서 살아남아라.</p></div><div class="runbrief"><b>05:00</b><span>한 판의 강호</span><small>자동 공격 · 자유로운 이동</small></div></div>
     <div class="sectionlabel"><b>당신의 길을 선택하세요</b><span>세력에 따라 무공과 적이 달라집니다</span></div>
     <div class="factions">
@@ -28,12 +28,19 @@
       <button data-f="1" class="faction"><b>邪</b><span class="factiontag">자유로운 강호</span><strong>사파</strong><small>추혼비도 <i>이동 속도 +12</i></small><span class="factiondesc">강호에 정해진 법은 없다</span></button>
       <button data-f="2" class="faction"><b>魔</b><span class="factiontag">힘으로 증명하라</span><strong>마교</strong><small>혈월장 <i>피해 +12%</i></small><span class="factiondesc">천하를 꿰뚫는 압도적인 힘</span></button>
     </div>
-    <div class="departure"><div class="route"><div class="stagepicker"><label for="stageSelect">출도 지역</label><select id="stageSelect"><option value="0">청죽림 · 입문</option><option value="1">설산고개 · 도전</option><option value="2">홍월폐사 · 고난</option></select></div><small id="stageInfo">첫 출도에 알맞은 대나무 숲</small><div id="enemyInfo">상대 세력 · 사파 / 마교</div></div><button class="primary" id="start"><small>강호가 당신을 기다립니다</small>강호 출도 <span>→</span></button></div>
-    <footer><div id="best"></div><span>드래그 / WASD 이동 · SPACE 경공 · 공격은 자동</span></footer>
+    <div class="battlepicker"><span>난이도</span><button id="bloodMode" class="active">혈전 <small>거센 포위망</small></button><button id="hellMode">지옥 <small>극한의 물량전</small></button><button id="fxDemo">무공 연출 보기 ✧</button></div><div class="departure"><div class="route"><div class="stagepicker"><label for="stageSelect">출도 지역</label><select id="stageSelect"><option value="0">청죽림 · 입문</option><option value="1">설산고개 · 도전</option><option value="2">홍월폐사 · 고난</option></select></div><small id="stageInfo">첫 출도에 알맞은 대나무 숲</small><div id="enemyInfo">상대 세력 · 사파 / 마교</div></div><button class="primary" id="start"><small>강호가 당신을 기다립니다</small>강호 출도 <span>→</span></button></div>
+    <footer><div id="best"></div><span>드래그 / WASD 이동 · SPACE 경공 · 공격은 자동 <a href="credits.html" target="_blank" rel="noopener">오픈소스</a></span></footer>
   </section>
 </main>
 <div id="modal" class="veil" hidden><section class="dialog"><div class="eyebrow" id="modalEyebrow">내공 돌파</div><h2 id="modalTitle">무공을 선택하세요</h2><div id="choices"></div><div class="dialogactions"><button id="again" class="primary" hidden>다시 출도 →</button><button id="resume" class="primary" hidden>계속하기</button><button id="retry" hidden>세력 선택으로</button></div></section></div>
 <div id="camp" class="veil" hidden><section class="dialog"><div class="eyebrow">강호 쉼터</div><h2 id="campTitle"></h2><p id="campSub"></p><div id="campContent"></div><button id="campClose" class="primary">돌아가기</button></section></div>
 <div id="notice" role="status"></div><div id="rotate">↻ 휴대폰을 가로로 돌려주세요</div>
-<script src="profile.js?v=04"></script><script src="sound.js?v=04"></script><script src="world.js?v=04"></script><script src="bosses.js?v=04"></script><script src="enemies.js?v=04"></script><script src="combat.js?v=04"></script><script src="feedback.js?v=04"></script><script src="game.js?v=04"></script><script src="camp.js?v=04"></script><script src="controls.js?v=04"></script><script src="app.js?v=04"></script>
+<script>
+if('serviceWorker' in navigator)navigator.serviceWorker.addEventListener('controllerchange',()=>{
+ if(window.MURIM_VERSION===document.documentElement.dataset.version)return;
+ const menu=document.querySelector('#menu');
+ if(menu&&!menu.hidden){location.reload();return}
+ if(!document.querySelector('#applyUpdate')){const b=document.createElement('button');b.id='applyUpdate';b.textContent='새 버전 적용';b.onclick=()=>location.reload();document.querySelector('.menunav')?.append(b)}
+});
+</script><script src="vendor/proton.min.js?v=05"></script><script src="profile.js?v=05"></script><script src="sound.js?v=05"></script><script src="world.js?v=05"></script><script src="bosses.js?v=05"></script><script src="enemies.js?v=05"></script><script src="combat.js?v=05"></script><script src="feedback.js?v=05"></script><script src="siege.js?v=05"></script><script src="vfx.js?v=05"></script><script src="game.js?v=05"></script><script src="camp.js?v=05"></script><script src="controls.js?v=05"></script><script src="arsenal.js?v=05"></script><script src="app.js?v=05"></script>
 </body></html>

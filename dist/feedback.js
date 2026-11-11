@@ -32,7 +32,9 @@ function drawEnemy(e){ctx.save();ctx.translate(e.x,e.y);if(e.hit>0)ctx.scale(1.1
 function updateHUD(s,dt){
   s.hudClock=(s.hudClock||0)-dt;if(s.hudClock>0)return;s.hudClock=.08;const p=s.p;
   $('#hpvalue').textContent=Math.ceil(Math.max(0,p.hp))+' / '+p.max;$('#hud').classList.toggle('critical',p.hp/p.max<.25);bossHUD();
-  $('#hp').style.width=Math.max(0,p.hp/p.max*100)+'%';$('#xp').style.width=Math.min(100,s.xp/s.need*100)+'%';$('#clock').textContent=format(s.time);$('#kills').textContent=s.kills.toLocaleString();$('#level').textContent='경지 '+s.level;$('#regionLabel').textContent=stages[stageId].name;$('#waveLabel').textContent='포위망 '+Math.min(5,s.wave+1)+' / 5';$('#enemyCount').textContent=s.enemies.length+'명 접근';
-  $('#combo').textContent=s.comboTimer>0&&s.combo>=3?s.combo+' 연속 격파':'';
+  $('#hp').style.width=Math.max(0,p.hp/p.max*100)+'%';$('#xp').style.width=Math.min(100,s.xp/s.need*100)+'%';$('#clock').textContent=format(s.time);$('#kills').textContent=s.kills.toLocaleString();$('#level').textContent='경지 '+s.level;$('#regionLabel').textContent=stages[stageId].name;$('#pressureFill').style.width=Math.min(100,s.enemies.length/battle().cap*100)+'%';$('#pressureValue').textContent=battle().name+' · '+Math.round(s.enemies.length/battle().cap*100)+'%';$('#waveLabel').textContent='포위망 '+Math.min(5,s.wave+1)+' / 5';$('#enemyCount').textContent=s.enemies.length+'명 접근';
+  for(const [i,key,period]of [[0,'sword',.46],[1,'knife',Math.max(.18,.5-s.skills[1]*.05)],[3,'stomp',s.thunder?1.1:1.65],[7,'lightning',1.5]])if(s.skills[i]){const el=$('#skill'+i);if(el)el.style.setProperty('--ready',Math.max(0,1-(s.cooldowns?.[key]||0)/period)*100+'%')}$('#combo').textContent=s.comboTimer>0&&s.combo>=3?s.combo+' 연속 격파':'';
   $('#dash').classList.toggle('cooling',s.dash>0);$('#dash').style.setProperty('--charge',Math.max(0,1-s.dash/2.8)*360+'deg');$('#dashLabel').textContent=s.dash>0?s.dash.toFixed(1)+'초':'경공';$('#dashHint').textContent=s.dash>0?'준비 중':'회피 · SPACE';
 }
+
+function drawHeroFocus(s){if(s.inv>0&&Math.floor(s.inv*20)%2)return;ctx.save();ctx.strokeStyle='#143b2ee0';ctx.lineWidth=4;ctx.beginPath();ctx.ellipse(s.p.x,s.p.y+13,19,8,0,0,7);ctx.stroke();ctx.strokeStyle='#f4e5ac';ctx.lineWidth=1.4;ctx.beginPath();ctx.ellipse(s.p.x,s.p.y+13,19,8,0,0,7);ctx.stroke();sprite(s.p.x,s.p.y,selected,true);ctx.restore()}

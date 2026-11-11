@@ -2,7 +2,7 @@
 // Versioned, device-local progression. No account or network dependency.
 const Profile = (() => {
   const key = 'murim.profile.v1';
-  const blank = () => ({version:1,silver:0,runs:0,wins:0,totalKills:0,best:0,training:{vitality:0,power:0,fortune:0},settings:{sound:false,shake:true},history:[]});
+  const blank = () => ({version:1,silver:0,runs:0,wins:0,totalKills:0,best:0,training:{vitality:0,power:0,fortune:0},settings:{sound:false,shake:true,effects:'high'},history:[]});
   const int = (v,max=1e8) => Math.max(0,Math.min(max,Math.floor(Number(v)||0)));
   let data=blank(), available=true;
   try {
@@ -11,7 +11,7 @@ const Profile = (() => {
       for(const k of ['silver','runs','wins','totalKills','best'])data[k]=int(saved[k]);
       for(const k of Object.keys(data.training))data.training[k]=int(saved.training?.[k],5);
       for(const k of Object.keys(data.settings))if(typeof saved.settings?.[k]==='boolean')data.settings[k]=saved.settings[k];
-      data.history=Array.isArray(saved.history)?saved.history.slice(0,10).filter(x=>x&&typeof x==='object').map(x=>({faction:int(x.faction,2),kills:int(x.kills),time:int(x.time,300),win:!!x.win,reward:int(x.reward),date:String(x.date||'').slice(0,30)})):[];
+      if(['high','low'].includes(saved.settings?.effects))data.settings.effects=saved.settings.effects;data.history=Array.isArray(saved.history)?saved.history.slice(0,10).filter(x=>x&&typeof x==='object').map(x=>({faction:int(x.faction,2),kills:int(x.kills),time:int(x.time,300),win:!!x.win,reward:int(x.reward),date:String(x.date||'').slice(0,30)})):[];
     }
   } catch { available=false; }
   function save(){try{localStorage.setItem(key,JSON.stringify(data));available=true}catch{available=false}return available}

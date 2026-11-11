@@ -24,3 +24,6 @@ Android/iOS 실제 기기의 장시간 성능, 홈 화면 설치, 오프라인 �
 
 ## v0.4
 feedback.js가 전투 반응과 HUD를 담당합니다. 상태에는 corpses/particles/impacts가 추가되며, 사망 연출은 실제 적 목록과 분리됩니다. 투사체 충돌은 enemies.js의 격자 후보를 사용합니다. 자동 검사 12개가 통과했습니다. Android/iOS 실제 성능 검증은 별도로 필요합니다.
+
+## v0.5
+vfx.js는 고정 버전 Proton 엔진의 emitter와 pool을 사용하고 렌더러는 게임 좌표계에 직접 그립니다. siege.js는 난이도와 포위 증원, arsenal.js는 무공 UI와 체험을 담당합니다. 체험은 보상을 지급하지 않습니다. 새 서드파티 파일과 라이선스는 서비스워커에 포함됩니다.

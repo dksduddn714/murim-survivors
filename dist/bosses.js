@@ -1,6 +1,6 @@
 'use strict';
 function summonBoss(final){
-  spawn(true);const e=state.enemies.at(-1);e.final=final;e.hp=e.max=(final?1000:350)*stages[stageId].difficulty;e.name=(final?['청룡검존','추혼귀왕','혈월교주']:['청운당주','흑풍채주','혈의호법'])[e.f];e.phase=1;e.blast=0;e.blastCooldown=3;e.x=state.p.x+Math.min(W/2-60,260);e.y=state.p.y-Math.min(H/2-90,140);showNotice((final?'최종 결전 · ':'중간 관문 · ')+e.name+' 등장');if(typeof Sound!=='undefined')Sound.play('boss')
+  spawn(true);const e=state.enemies.at(-1);e.final=final;e.hp=e.max=(final?1000:350)*stages[stageId].difficulty*(battleMode==='hell'?1.6:1.25);e.name=(final?['청룡검존','추혼귀왕','혈월교주']:['청운당주','흑풍채주','혈의호법'])[e.f];e.phase=1;e.blast=0;e.blastCooldown=3;e.x=state.p.x+Math.min(W/2-60,260);e.y=state.p.y-Math.min(H/2-90,140);showNotice((final?'최종 결전 · ':'중간 관문 · ')+e.name+' 등장');if(typeof Sound!=='undefined')Sound.play('boss')
 }
 function updateBoss(e,s,dt){
   if(e.phase===1&&e.hp<e.max*.5){e.phase=2;e.speed*=1.2;showNotice(e.name+' · 광폭화!')}
