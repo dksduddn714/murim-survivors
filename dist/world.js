@@ -4,7 +4,7 @@ const stages=[
   {name:'설산고개',sub:'차가운 설원 · 적 체력 +15%',ground:['#c3d4c9','#c8d8cd','#bdd0c7'],grass:'#a1bcae',path:'#abbdb5',dark:'#416c68',leaf:'#668e80',difficulty:1.15},
   {name:'홍월폐사',sub:'붉은 달 아래 · 적 체력 +25%',ground:['#546d68','#58716a','#506860'],grass:'#435c52',path:'#78877a',dark:'#304f48',leaf:'#6e7970',difficulty:1.25}
 ];let stageId=0;
-$('#stageSelect').onchange=e=>{stageId=Number(e.target.value);$('#stageInfo').textContent=stages[stageId].sub};
+document.querySelector('#stageSelect').onchange=e=>{stageId=Number(e.target.value);$('#stageInfo').textContent=stages[stageId].sub};
 function hash(x,y){let n=Math.sin(x*127.1+y*311.7)*43758.5453;return n-Math.floor(n)}
 function pine(x,y,snow){rect(x-4,y-40,8,45,'#64594a');for(let i=0;i<3;i++){const w=44-i*10;ctx.fillStyle=snow?'#718e81':'#4a7550';ctx.beginPath();ctx.moveTo(x,y-100+i*24);ctx.lineTo(x-w,y-30+i*12);ctx.lineTo(x+w,y-30+i*12);ctx.fill();if(snow){ctx.fillStyle='#e2e9d9';ctx.beginPath();ctx.moveTo(x,y-100+i*24);ctx.lineTo(x-w*.7,y-49+i*15);ctx.lineTo(x+w*.7,y-49+i*15);ctx.fill()}}}
 function lantern(x,y){rect(x-3,y-42,6,44,'#6e6b50');rect(x-10,y-48,20,6,'#494d40');rect(x-8,y-64,16,16,'#cf9d64');rect(x-5,y-61,10,9,'#f1cf8b');rect(x-12,y-67,24,4,'#56624e');rect(x-8,y,16,5,'#7f8970')}
