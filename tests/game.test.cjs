@@ -4,7 +4,7 @@ function harness(saved){
   const nodes=new Map(),store=new Map(saved?Object.entries(saved):[]);let clock=0;
   function element(){let html='';return {children:[],dataset:{},style:{setProperty(){}},classList:{toggle(){},add(){},remove(){}},hidden:false,textContent:'',get innerHTML(){return html},set innerHTML(v){html=v;this.children=[]},append(e){this.children.push(e)},querySelector(){return null},querySelectorAll(){return []},insertAdjacentHTML(){},setAttribute(){},addEventListener(){},setPointerCapture(){},getContext(){return new Proxy({},{get:()=>()=>({})})}}}
   const sandbox={console,Math,Date,Set,Map,JSON,Number,Object,performance:{now:()=>clock},innerWidth:960,innerHeight:540,devicePixelRatio:1,addEventListener(){},setTimeout(){return 1},clearTimeout(){},setInterval(){},navigator:{},window:{},screen:{},document:{hidden:false,body:{dataset:{}},querySelector(s){if(!nodes.has(s))nodes.set(s,element());return nodes.get(s)},querySelectorAll(){return []},createElement:element,addEventListener(){}},localStorage:{getItem(k){return store.get(k)||null},setItem(k,v){store.set(k,v)}}};
-  vm.createContext(sandbox);for(const file of ['vendor/proton.min','vendor/wuxia-ui-pack','vendor/wuxia-sprites','profile','sound','world','bosses','enemies','combat','feedback','siege','vfx','game','merchant','camp','controls','arsenal','app'])vm.runInContext(fs.readFileSync(path.join(root,'dist',file+'.js'),'utf8'),sandbox,{filename:file+'.js'});
+  vm.createContext(sandbox);for(const file of ['vendor/proton.min','vendor/wuxia-ui-pack','vendor/wuxia-sprites','profile','sound','world','bosses','enemies','combat','feedback','siege','vfx','arena','game','merchant','camp','controls','arsenal','app'])vm.runInContext(fs.readFileSync(path.join(root,'dist',file+'.js'),'utf8'),sandbox,{filename:file+'.js'});
   return {run:code=>vm.runInContext(code,sandbox),nodes,store,advance(ms){clock+=ms;vm.runInContext('tick()',sandbox)}}
 }
 test('all stages, factions, combat and rendering remain finite for a two-minute run',()=>{for(let f=0;f<3;f++){const h=harness();h.run(`selected=${f};stageId=${f};start();state.p.hp=state.p.max=1e8;`);for(let i=0;i<2400;i++)h.run("if(mode==='upgrade')$('#choices').children[0].onclick();if(mode==='play')update(.05)");assert.ok(h.run('state.time')>100);assert.ok(h.run('state.kills')>0);assert.ok(h.run('state.enemies.every(e=>e.f!==selected)'));assert.ok(h.run('Number.isFinite(state.p.x)&&Number.isFinite(state.p.hp)'));h.run('render()')}});
@@ -60,4 +60,17 @@ test('magnet marks only existing gems and player contact damage does not block m
  assert.equal(h.run('state.gems[0].magnet'),true);assert.equal(h.run('!!state.gems[1].magnet'),false);
  h.run('state.enemies=[{x:0,y:0,hp:99999,max:99999,f:1,speed:0,fire:999,charge:0}];state.skills.fill(0);keys.d=true;update(.01)');
  assert.ok(h.run('state.inv')>0);const x=h.run('state.p.x'),hp=h.run('state.p.hp');h.run('update(.01)');assert.ok(h.run('state.p.x')>x);assert.equal(h.run('state.p.hp'),hp);
+});
+test('arena limits walking and dash, and world points map consistently to minimap',()=>{
+ const h=harness();h.run('start();state.p.x=1190;state.p.y=790;keys.d=true;keys.s=true;state.inv=999;update(.1);state.dash=0;dash()');
+ assert.ok(h.run('state.p.x')<=1182);assert.ok(h.run('state.p.y')<=782);
+ assert.equal(h.run('minimapPoint(0,0).x'),80);assert.equal(h.run('minimapPoint(0,0).y'),56);
+ assert.equal(h.run('minimapPoint(99999,-99999).x'),152);assert.equal(h.run('minimapPoint(99999,-99999).y'),8);
+ h.run('state.time=70;updateMerchant(state,.1);render()');assert.ok(h.run('Math.abs(state.merchant.x)')<=1140);assert.ok(h.run('Math.abs(state.merchant.y)')<=740);
+ assert.equal(h.nodes.get('#minimap').hidden,false);
+});
+test('edge reinforcements stay inside arena and minimap handles a dense battlefield',()=>{
+ const h=harness();h.run('start();state.p.x=-1182;state.p.y=-782;state.time=160;state.siegeNext=0;updateSiege(state,.1);drawMinimap(state)');
+ assert.ok(h.run('state.enemies.every(e=>e.x>=-1200&&e.x<=1200&&e.y>=-800&&e.y<=800)'));
+ h.run('end(false);drawMinimap(state)');assert.equal(h.nodes.get('#minimap').hidden,false);
 });

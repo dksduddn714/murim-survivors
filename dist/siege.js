@@ -12,7 +12,7 @@ function updateSiege(s,dt){
       spawn();const e=s.enemies.at(-1),a=i*Math.PI*2/count;
       const distMult=Math.abs(i-gap)<=1?1.24:1;
       e.x=s.p.x+Math.cos(a)*(W/2+32)*distMult;e.y=s.p.y+Math.sin(a)*(H/2+32)*distMult;
-      e.rush=2.6;
+      keepInArena(e,24);e.rush=2.6;
       if(i===0){e.elite=true;e.siegeLeader=true;e.hp=e.max*=1.8;e.name='포위 선봉장'}
       else if(i%4===0)e.runner=true;
     }

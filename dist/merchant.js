@@ -18,7 +18,7 @@ function updateMerchant(s,dt){
   if(!m&&s.time>=s.merchantNext&&!s.demo){
     const a=Math.random()*Math.PI*2,r=Math.max(75,Math.min(W,H)*.3);
     s.merchant=m={x:s.p.x+Math.cos(a)*r,y:s.p.y+Math.sin(a)*r,until:s.time+45,bought:false,offers:merchantOffers(s)};
-    s.merchantNext=s.time+65+Math.random()*20;showNotice('떠돌이 상인 출현 · 지도 위 보따리를 찾아가세요');
+    keepInArena(m,60);s.merchantNext=s.time+65+Math.random()*20;showNotice('떠돌이 상인 출현 · 지도 위 보따리를 찾아가세요');
   }
   const near=!!m&&!m.bought&&Math.hypot(m.x-s.p.x,m.y-s.p.y)<75;
   $('#trade').hidden=!near||mode!=='play';
