@@ -79,7 +79,7 @@ test('C sprite catalogue covers all factions and roles with cached pixel frames'
  assert.equal(h.run('WuxiaSprites.heroNames.flat().length'),12);assert.equal(h.run('WuxiaSprites.roles.length'),8);
  h.run('for(let f=0;f<3;f++){for(let sub=0;sub<4;sub++)for(let frame=0;frame<3;frame++)WuxiaSprites.frame(f,"hero",sub,frame,false);for(const role of WuxiaSprites.roles){WuxiaSprites.frame(f,role,0,0,false);WuxiaSprites.frame(f,role,0,1,true)}}');
  assert.equal(h.run('WuxiaSprites.frame(1,"shield",0,0,false)===WuxiaSprites.frame(1,"shield",0,0,false)'),true);
- assert.equal(h.run('WuxiaSprites.frame(0,"hero",0,0,false).width'),40);
+ assert.equal(h.run('WuxiaSprites.frame(0,"hero",0,0,false).width'),96);
  assert.ok(h.run('WuxiaSprites.cachedFrames')<300);
  h.run('start();for(const role of WuxiaSprites.roles)deathFeedback({x:0,y:0,f:1,role,boss:role==="boss"});drawCorpses(state)');
 });
@@ -96,4 +96,20 @@ test('redesigned skill silhouettes render every cast and projectile family',()=>
  const h=harness();h.run('start()');
  for(const type of ['slash','throw','meteor','buddha','stomp','ice','blood_burst','poison','dragon_strike','lightning','chain','shadow_clone'])h.run(`VFX.cast('${type}',0,0,{tx:80,ty:20,r:80});VFX.update(state,.1);VFX.front(state)`);
  for(const style of ['dragon_wave','black_dragon','arhat','plum','wraith','dharma_wheel','venom_wave','shadow_dagger','blood_spear','emerald_staff','taiji','blood_blade','cleaver_wave','demonic_slash'])h.run(`VFX.projectile({x:0,y:0,vx:100,vy:0,style:'${style}',type:'sword'},state)`);
+});
+test('primary attack prepares, releases once and keeps movement enabled',()=>{
+ const h=harness();h.run('start();state.skills.fill(0);state.skills[4]=1;state.cooldowns={guard:999,innate:0};state.enemies=[{x:50,y:0,f:1,hp:1000,max:1000,speed:0,fire:99}];runAttacks(state,.01)');
+ assert.equal(h.run('state.attack.phase'),1);assert.ok(h.run('state.pendingShots.length')>0);assert.equal(h.run('state.shots.length'),0);
+ h.run('updateAttackMotion(state,.06)');assert.equal(h.run('state.attack.phase'),2);assert.equal(h.run('state.shots.length'),0);
+ h.run('updateAttackMotion(state,.07)');assert.equal(h.run('state.attack.phase'),3);assert.ok(h.run('state.shots.length')>0);assert.equal(h.run('state.pendingShots.length'),0);
+ const hp=h.run('state.enemies[0].hp'),count=h.run('state.shots.length');h.run('updateAttackMotion(state,.03)');assert.equal(h.run('state.enemies[0].hp'),hp);assert.equal(h.run('state.shots.length'),count);
+ h.run('keys.d=true;state.inv=999;const before=state.p.x;update(.01);');assert.ok(h.run('state.p.x')>0);
+});
+test('64px artwork rasterizes different preparation and strike poses',()=>{
+ const h=harness();const poses=h.run(`(()=>{const old=document.createElement;const out=[];for(let p=1;p<=5;p++){let ops=[];const g={fillRect(...args){ops.push([this.fillStyle,...args])},translate(){}};document.createElement=()=>({getContext:()=>g});const image=WuxiaSprites.frame(2,'hero',3,8,true,p);out.push(JSON.stringify(ops));if(image.width!==96)throw Error('cell size')}document.createElement=old;return out})()`);
+ assert.equal(new Set(poses).size,5);assert.equal(h.run('WuxiaSprites.characterPixels'),64);
+});
+test('opening wave includes human enemy variety and corpses preserve appearances',()=>{
+ const h=harness();h.run('start();state.enemies=[];for(let i=0;i<180;i++)spawn()');assert.ok(h.run('new Set(state.enemies.map(e=>e.role)).size')>=3);assert.ok(h.run('new Set(state.enemies.map(e=>e.look)).size')>=3);
+ h.run('const chosen=state.enemies.find(e=>e.look===2);chosen.hp=1;damage(chosen,1000,0)');assert.equal(h.run('state.corpses.at(-1).look'),2);
 });

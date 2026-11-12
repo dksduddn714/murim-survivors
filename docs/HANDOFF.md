@@ -22,3 +22,6 @@ C 스타일 아군/적 렌더러 적용 완료. vendor/wuxia-sprites.js의 frame
 
 ## v1.4
 스프라이트 frame(f,role,sub,locomotionFrame,hit,attack)로 공격/보행 독립. state.walkTime 및 enemy.animTime 실제 이동 시 누적. 움직이지 않으면 frame0. VFX.eventArt/projectile에서 형태별 표현. 게임 판정 변경 없음.
+
+## v1.5 공격 시스템
+combat.js의 beginAttack/updateAttackMotion에서 .42초 공격 사이클, .12초 1회 contact와 pendingShots 방출. 비주력 자동 무공은 즉시 발동 유지. sprite frame()의 attack 값은 boolean 대신 1~5 포즈. 기존 true는3으로 호환. 원본96×96, 몸체64px, 캔버스 정수 래스터. renderer cachedFrames 최대1024.

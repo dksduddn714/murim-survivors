@@ -7,28 +7,29 @@ function hitFeedback(e,n,direction,kind='sword'){
   const kMult=kind==='stomp'?1.25:kind==='knife'?.65:kind==='ring'?.85:1;
   const roleResist=e.role==='shield'?.35:e.role==='brute'?.55:1;
   const force=(e.boss?18:e.elite?48:74)*kMult*roleResist;
-  e.knockX=Math.cos(a)*force;e.knockY=Math.sin(a)*force;e.stun=e.boss?0:(kind==='lightning'||kind==='stomp'?.08:.04);e.hit=.12;
-  s.impacts.push({x:e.x,y:e.y-6,a,t:.16,max:.16,large:n>=45||kind==='stomp'||kind==='lightning',kind});
+  e.knockX=Math.cos(a)*force;e.knockY=Math.sin(a)*force;e.stun=e.boss?0:(kind==='lightning'||kind==='stomp'?.08:.04);e.hit=.12;if(n>=35&&(s.impactCooldown||0)<=0){s.impactCooldown=.12;s.shake=Math.max(s.shake||0,.055)}
+  s.impacts.push({x:e.x,y:e.y-28,a,t:.16,max:.16,large:n>=45||kind==='stomp'||kind==='lightning',kind});
   if(s.impacts.length>65)s.impacts.shift();
   const pCol=kind==='lightning'?'#bfe0ff':kind==='ice'?'#9ee8ff':kind==='fire'?'#ff8b54':kind==='knife'?'#ffd080':kind==='stomp'?'#ff9eb5':'#ffedb1';
-  for(let i=0;i<3;i++)addParticle(e.x,e.y-8,a+(Math.random()-.5)*2.8,70+Math.random()*110,pCol,.22);
+  for(let i=0;i<3;i++)addParticle(e.x,e.y-28,a+(Math.random()-.5)*2.8,70+Math.random()*110,pCol,.22);
   Sound.play('hit');
 }
 function addParticle(x,y,a,speed,color,life){if(state.particles.length>=240)return;state.particles.push({x,y,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed,t:life,max:life,color,size:2+Math.random()*3})}
 function deathFeedback(e){
-  const s=state,a=Math.atan2(e.y-s.p.y,e.x-s.p.x);s.corpses.push({x:e.x,y:e.y,f:e.f,boss:e.boss,role:e.role,a,turn:Math.cos(a)>0?1:-1,t:.65,max:.65});if(s.corpses.length>90)s.corpses.shift();
+  const s=state,a=Math.atan2(e.y-s.p.y,e.x-s.p.x);s.corpses.push({x:e.x,y:e.y,f:e.f,boss:e.boss,role:e.role,look:e.look||0,a,turn:Math.cos(a)>0?1:-1,t:.65,max:.65});if(s.corpses.length>90)s.corpses.shift();
   for(let j=0;j<(e.boss?22:8);j++)addParticle(e.x,e.y-3,Math.random()*Math.PI*2,45+Math.random()*100,j%3===0?'#ffdfa0':factions[e.f].color,.3+Math.random()*.25);
   s.combo=(s.comboTimer>0?s.combo:0)+1;s.comboTimer=2.2;s.bestCombo=Math.max(s.bestCombo,s.combo);
   if(e.boss||e.elite){s.shake=Math.max(s.shake||0,e.boss?.25:.09);Sound.play('kill')}
   if([10,25,50,100].includes(s.combo))showNotice(s.combo+' 연속 격파!');
 }
 function updateFeedback(s,dt){
+  s.impactCooldown=Math.max(0,(s.impactCooldown||0)-dt);
   s.comboTimer=Math.max(0,s.comboTimer-dt);s.swing=Math.max(0,(s.swing||0)-dt);
   compact(s.particles,p=>{p.t-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=Math.exp(-5*dt);p.vy+=85*dt;return p.t>0});
   compact(s.corpses,d=>{d.t-=dt;d.x+=Math.cos(d.a)*42*dt;d.y+=Math.sin(d.a)*28*dt;return d.t>0});
   compact(s.impacts,h=>{h.t-=dt;return h.t>0});
 }
-function drawCorpses(s){for(const d of s.corpses){const age=1-d.t/d.max;ctx.save();ctx.translate(d.x,d.y);ctx.rotate(d.turn*Math.min(1.5,age*3.6));ctx.scale(1,1-age*.3);ctx.globalAlpha=Math.min(1,d.t/.28);WuxiaSprites.drawEnemy(ctx,{x:0,y:0,f:d.f,role:d.role,boss:d.boss,hit:d.t>.57?1:0},ambient);ctx.restore()}}
+function drawCorpses(s){for(const d of s.corpses){const age=1-d.t/d.max;ctx.save();ctx.translate(d.x,d.y);ctx.rotate(d.turn*Math.min(1.5,age*3.6));ctx.scale(1,1-age*.3);ctx.globalAlpha=Math.min(1,d.t/.28);WuxiaSprites.drawEnemy(ctx,{x:0,y:0,f:d.f,role:d.role,look:d.look||0,boss:d.boss,hit:d.t>.57?1:0},ambient);ctx.restore()}}
 function drawImpacts(s){
   for(const p of s.particles){ctx.globalAlpha=p.t/p.max;rect(p.x,p.y,p.size,p.size,p.color)}ctx.globalAlpha=1;
   for(const h of s.impacts){

@@ -1,8 +1,20 @@
 'use strict';
+function beginAttack(s,angle){s.attack={age:0,duration:.42,phase:1,angle,face:Math.cos(angle)<0?-1:1};}
+function updateAttackMotion(s,dt){
+ if(s.attack){s.attack.age+=dt;
+  if(s.attack.age>=.12&&!s.attack.contact){s.attack.contact=true;const a=s.attack.angle;
+   VFX.cast('slash',s.p.x,s.p.y-24,{a,r:55,lv:1,color:factions[selected].color});
+   for(const e of s.enemies){if(e.dead)continue;const dx=e.x-s.p.x,dy=e.y-s.p.y,d=Math.hypot(dx,dy),da=Math.atan2(Math.sin(Math.atan2(dy,dx)-a),Math.cos(Math.atan2(dy,dx)-a));if(d<74&&Math.abs(da)<1)damage(e,10+s.level*1.2,a,'sword')}
+  }
+ const t=s.attack.age;s.attack.phase=t<.055?1:t<.12?2:t<.2?3:t<.3?4:t<.42?5:0;if(t>=s.attack.duration)s.attack=null}
+ if(s.pendingShots){for(const b of s.pendingShots){b.delay-=dt;if(b.delay<=0){b.x=s.p.x;b.y=s.p.y-12;delete b.delay;s.shots.push(b);Sound.play('slash')}}compact(s.pendingShots,b=>b.delay>0)}
+}
 function shot(a,spd,dmg,type,scale=1,style='default',homing=false){
-  state.shots.push({x:state.p.x,y:state.p.y,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,t:scale>1.2?1.55:1.28,damage:dmg,type,scale,style,homing,hit:new Set()});
+ const b={x:state.p.x,y:state.p.y-12,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,t:scale>1.2?1.55:1.28,damage:dmg,type,scale,style,homing,hit:new Set()};
+ if(state._windup){b.delay=.12;(state.pendingShots??=[]).push(b)}else state.shots.push(b);
 }
 function runAttacks(s,dt){
+  updateAttackMotion(s,dt);
   const p=s.p;
   const f=typeof selected!=='undefined'?selected:0;
   const sub=typeof subSect!=='undefined'?subSect:0;
@@ -15,7 +27,7 @@ function runAttacks(s,dt){
 
   // 0. 12문파 고유 원거리 기본 절초 (Innate Ranged Signature Attack — active whenever the player has any skill enabled)
   if(target&&s.skills.some(Boolean)&&s.cooldowns.innate<=0){
-    s.cooldowns.innate=0.52;
+    s.cooldowns.innate=0.52;beginAttack(s,angle);s._windup=true;
     const baseDmg=19+s.level*2.2;
     if(f===0){
       const st=sub===0?'arhat':sub===1?'taiji':sub===2?'plum':'dragon_wave';
@@ -39,6 +51,8 @@ function runAttacks(s,dt){
       }
     }
   }
+
+  s._windup=false;
 
   // Slot 0: 정파[태극검법] / 사파[혈도참] / 마교[천마검법] (원거리 관통 검기)
   if(target&&(s.skills[0]||s.fusions?.[0])&&s.cooldowns.sword<=0){
