@@ -10,8 +10,9 @@ function updateAttackMotion(s,dt){
  if(s.pendingShots){for(const b of s.pendingShots){b.delay-=dt;if(b.delay<=0){b.x=s.p.x;b.y=s.p.y-12;delete b.delay;s.shots.push(b);Sound.play('slash')}}compact(s.pendingShots,b=>b.delay>0)}
 }
 function shot(a,spd,dmg,type,scale=1,style='default',homing=false){
- const b={x:state.p.x,y:state.p.y-12,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,t:scale>1.2?1.55:1.28,damage:dmg,type,scale,style,homing,hit:new Set()};
- if(state._windup){b.delay=.12;(state.pendingShots??=[]).push(b)}else state.shots.push(b);
+ if(state.shots.length+(state.pendingShots?.length||0)>=220)return null;
+ const b={...projectilePolicy(type,style,scale),x:state.p.x,y:state.p.y-12,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,t:scale>1.2?1.55:1.28,damage:dmg,type,scale,style,homing,hit:new Set()};
+ if(state._windup){b.delay=.12;(state.pendingShots??=[]).push(b)}else state.shots.push(b);return b;
 }
 function runAttacks(s,dt){
   updateAttackMotion(s,dt);
@@ -45,7 +46,7 @@ function runAttacks(s,dt){
       shot(angle,470,baseDmg*1.18,tp,1.28,st,sub===2);
       if(sub===1){
         shot(angle+.14,460,baseDmg*.85,'sword',1.05,'blood_spear');
-        p.hp=Math.min(p.max,p.hp+.5);
+        p.hp=Math.min(p.max,p.hp+.1);
       }else if(sub===2){
         shot(angle-.16,440,baseDmg*.85,'knife',1.05,'wraith',true);
       }
@@ -73,7 +74,7 @@ function runAttacks(s,dt){
   if(target&&(s.skills[1]||s.fusions?.[1])&&s.cooldowns.knife<=0){
     const lv=s.skills[1]||1,fused=!!s.fusions?.[1],evo=s.rain||fused;
     s.cooldowns.knife=fused?.30:evo?.36:Math.max(.35,.66-lv*.05);
-    const count=fused?9:evo?6:2+lv,dmg=(17+lv*7)*(fused?1.5:evo?1.25:1);
+    const count=fused?6:evo?5:2+Math.floor(lv*.6),dmg=(17+lv*7)*(fused?1.5:evo?1.25:1);
     const style=f===0?'plum_dagger':f===1?'shadow_dagger':'wraith';
     const col=f===0?'#fb7185':f===1?'#a855f7':'#c084fc';
     for(let j=0;j<count;j++){
@@ -111,11 +112,11 @@ function runAttacks(s,dt){
     const col=f===0?'#fbbf24':f===1?'#f43f5e':'#f59e0b';
     const hanja=f===0?'佛':f===1?'血':'天';
     const tx=target?target.x:p.x,ty=target?target.y:p.y;
-    s.effects.push({x:tx,y:ty,r,t:.38,max:.38,color:col});
+
     VFX.cast(f===2?'meteor':f===1?'blood_burst':'stomp',tx,ty,{r,color:col,thunder:evo,lv,hanja});
-    if(tx!==p.x||ty!==p.y)VFX.cast('stomp',p.x,p.y,{r:r*.75,color:col,thunder:false,lv,hanja});
+
     for(const e of s.enemies){
-      if(!e.dead&&(Math.hypot(e.x-tx,e.y-ty)<r||Math.hypot(e.x-p.x,e.y-p.y)<r*.85)){
+      if(!e.dead&&Math.hypot(e.x-tx,e.y-ty)<r){
         if(f===0&&!e.boss)e.stun=.32;
         if(f===1)e.bleed=(e.bleed||0)+2;
         if(f===2)e.blackFlame=1.2;
@@ -162,13 +163,16 @@ function runAttacks(s,dt){
     const col=f===0?'#c084fc':f===1?'#10b981':'#9333ea';
     const tx=target?target.x:p.x,ty=target?target.y:p.y;
     if(s.cooldowns.poison<=0){
-      s.cooldowns.poison=fused?.22:.32;
+      s.cooldowns.poison=fused?.5:.65;
       VFX.cast('poison',tx,ty,{r:r*.85,color:col,lv});
     }
+    s.poisonTick=(s.poisonTick||0)+dt;
+    if(!s.poisonStarted||s.poisonTick>=.12){const elapsed=s.poisonTick;s.poisonTick=0;s.poisonStarted=true;
     for(const e of s.enemies)if(!e.dead&&(Math.hypot(e.x-p.x,e.y-p.y)<r||Math.hypot(e.x-tx,e.y-ty)<r*.9)){
       e.poisoned=.45;
       if(f===2)e.blackFlame=.95;
-      damage(e,dt*(9+lv*7.5)*(fused?1.55:1),null,'poison');
+      damage(e,elapsed*(9+lv*7.5)*(fused?1.55:1),null,'poison');
+    }
     }
   }
 
@@ -181,7 +185,7 @@ function runAttacks(s,dt){
     const col=f===0?'#fbbf24':f===1?'#10b981':'#e11d48';
     for(const e of targets){
       const dmg=(24+lv*13)*(fused?1.45:1);
-      if(f===2){p.hp=Math.min(p.max,p.hp+1.1);e.bleed=(e.bleed||0)+2}
+      if(f===2){p.hp=Math.min(p.max,p.hp+.2);e.bleed=(e.bleed||0)+2}
       if(f===1)e.poisoned=.9;
       damage(e,dmg,Math.atan2(e.y-p.y,e.x-p.x),f===0?'stomp':'lightning');
       VFX.cast(f===0?'dragon_strike':f===2?'blood_burst':'lightning',e.x,e.y,{color:col,sx:p.x,sy:p.y,r:68});
@@ -220,7 +224,7 @@ function runAttacks(s,dt){
     const tx=target?target.x:p.x,ty=target?target.y:p.y;
     VFX.cast('ice',tx,ty,{r,color:col,evolved:fused,lv,hanja});
     for(const e of s.enemies){
-      if(!e.dead&&(Math.hypot(e.x-tx,e.y-ty)<r||Math.hypot(e.x-p.x,e.y-p.y)<r*.85)){
+      if(!e.dead&&Math.hypot(e.x-tx,e.y-ty)<r){
         e.chilled=1.6;
         if(f===0&&!e.boss)e.stun=.28;
         if(f===1)e.poisoned=.95;
@@ -241,7 +245,7 @@ function runAttacks(s,dt){
     shot(angle,450,dmg*.85,'sword',1.35,f===0?'emerald_staff':f===1?'cleaver_wave':'demonic_slash');
     if(fused)p.hp=Math.min(p.max,p.hp+3);
     for(const e of s.enemies){
-      if(!e.dead&&(Math.hypot(e.x-tx,e.y-ty)<r||Math.hypot(e.x-p.x,e.y-p.y)<r*.85)){
+      if(!e.dead&&Math.hypot(e.x-tx,e.y-ty)<r){
         if(f===1)e.bleed=(e.bleed||0)+2;
         if(f===2)e.blackFlame=1.3;
         damage(e,dmg,Math.atan2(e.y-p.y,e.x-p.x),'stomp');
@@ -257,7 +261,7 @@ function runAttacks(s,dt){
     const col=f===0?'#38bdf8':f===1?'#f59e0b':'#f43f5e';
     const victims=s.enemies.filter(e=>!e.dead&&Math.hypot(e.x-p.x,e.y-p.y)<r).slice(0,3+lv+(fused?4:0));
     if(victims.length){
-      p.hp=Math.min(p.max,p.hp+(fused?4:2));
+      p.hp=Math.min(p.max,p.hp+(fused?2:1));
       for(const e of victims){
         if(fused&&!e.boss){e.x+=(p.x-e.x)*.16;e.y+=(p.y-e.y)*.16}
         if(f===1)VFX.cast('shadow_clone',e.x,e.y,{color:'#fbbf24'});

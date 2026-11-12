@@ -22,6 +22,7 @@ const VFX=(()=>{
     if(type==='stomp'||type==='buddha'||type==='ice'||type==='meteor'||type==='blood_burst')burst(x,y,color,opts.evolved?48:24,210);
     if(type==='slash'||type==='flail'||type==='throw')burst(x,y,color,8+(opts.lv||1)*2,100+(opts.lv||1)*12,'spark',opts.a);
     if(type==='poison')burst(x+(Math.random()-.5)*(opts.r||50),y+(Math.random()-.5)*(opts.r||50),color,4,45,'mote');
+    if(type==='petals'||type==='impact_burst')burst(x,y,color,12,120);
     if(type==='evolution')burst(x,y,'#ffe2a1',80,290);
     events.push(event);if(events.length>60)events.shift();
   }
@@ -40,7 +41,11 @@ const VFX=(()=>{
   function eventArt(e,u,k){
     if(e.type==='evolution')return false;
     ctx.save();ctx.translate(e.x,e.y);ctx.globalAlpha=k;const r=e.r||90;
-    if(e.type==='slash'||e.type==='flail'){
+    if(e.type==='petals'){
+      for(let j=0;j<6;j++){const a=j*6.28/6+u*2,rr=(e.r||40)*u,x=Math.cos(a)*rr,y=Math.sin(a)*rr;ctx.fillStyle=j%2?'#ffdfed':e.color;ctx.fillRect(x-4,y-2,8,5);ctx.fillRect(x-2,y-4,4,9)}
+    }else if(e.type==='impact_burst'){
+      for(let j=0;j<7;j++){const a=j*6.28/7,rr=(e.r||45)*u;pixelLine(Math.cos(a)*rr*.3,Math.sin(a)*rr*.3,Math.cos(a)*rr,Math.sin(a)*rr,e.color,3)}
+    }else if(e.type==='slash'||e.type==='flail'){
       ctx.rotate((e.a||0)+(-.6+u*1.2));const rr=r*(.8+u*.35);
       polygon([[rr*.4,-rr*.8],[rr*.9,-rr*.45],[rr*1.1,0],[rr*.9,rr*.45],[rr*.4,rr*.8],[rr*.72,rr*.3],[rr*.82,0],[rr*.72,-rr*.3]],e.color);
       polygon([[rr*.8,-rr*.45],[rr*1.1,0],[rr*.8,rr*.45],[rr*.95,0]],'#fff7d5');
@@ -72,6 +77,7 @@ const VFX=(()=>{
   }
   function ground(s){
     if(!engine)return;ctx.save();
+    for(const f of s.weaponFields||[]){ctx.globalAlpha=Math.min(.25,f.t*.2);ctx.fillStyle='#76b586';ctx.fillRect(f.x-f.r*.7,f.y-f.r*.35,f.r*1.4,f.r*.7);ctx.globalAlpha=.6;ctx.strokeStyle='#b5de8e';ctx.lineWidth=2;ctx.strokeRect(f.x-4,f.y-10-(time*15)%15,6,6)}ctx.globalAlpha=1;
     if(s.skills[6]){
       const lv=s.skills[6],r=78+lv*14+(s.fusions?.[1]?28:0);
       ctx.fillStyle=selected===2?'#581c8724':selected===1?'#065f4622':'#83184320';
@@ -138,6 +144,7 @@ const VFX=(()=>{
   function projectile(b,s){
     const a=Math.atan2(b.vy,b.vx),sc=b.scale||1,st=b.style||'default';
     ctx.save();ctx.translate(Math.round(b.x),Math.round(b.y));ctx.rotate(a);ctx.scale(sc,sc);
+    if(Math.hypot(b.x-s.p.x,b.y-s.p.y)<38)ctx.globalAlpha=.6;
     if(st==='dragon_wave'||st==='black_dragon'){dragon(0,0,0,st==='dragon_wave'?'#eeb952':'#9770b7',1.1)}
     else if(st==='arhat'){palm(0,0,.7,1)}
     else if(st==='plum'||st==='plum_dagger'){

@@ -26,3 +26,13 @@ Local SHA-256: `e45b52fa4411a37c8b98810d23548bce960eb6dd4b8116153bdf2aafbacffb48
 - `dist/vendor/wuxia-sprites.js` is project-authored pixel art and rendering code, replacing the earlier procedural character renderer in v1.3.
 - License: MIT. No external sprite sheet or third-party artwork is embedded.
 - Uses integer-grid drawing and cached animation frames for 12 heroes and 8 enemy roles across 3 factions.
+
+## 4. Reference samples (not in-game actors)
+
+The files in `dist/samples/` are displayed only in `art-samples.html` to compare styles.
+- Pixel-Boy and AAA: Ninja Adventure; original author declares CC0 at https://pixel-boy.itch.io/ninja-adventure-asset-pack ; repository https://github.com/pixel-boy/NinjaAdventure
+- Shade: Puny character family. The player sheet is a modified redistribution from blackopsrepl/grim-delver under its `game/assets/shade_puny/LICENSE.md` CC0 declaration. Original https://merchant-shade.itch.io/16x16-puny-characters
+- Pixel-Boy / Sparklin Labs: Superpowers Medieval Fantasy; CC0 root LICENSE.txt.
+- Kenney: Tiny Dungeon tileset, redistribution giobi/sgravoquest-assets; CC0 per original https://kenney.nl/assets/tiny-dungeon
+
+Exact source paths and Git blob hashes: `dist/samples/sources.json`. CC0 text and source notes are bundled. No LPC or SpriteCook images are included.

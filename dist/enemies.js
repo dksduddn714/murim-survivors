@@ -1,12 +1,13 @@
 'use strict';
 function updateEnemy(e,s,dt){
-  e.moving=false;e.attackPose=Math.max(0,(e.attackPose||0)-dt);const oldX=e.x,oldY=e.y;
+  e.guardPulse=Math.max(0,(e.guardPulse||0)-dt);e.moving=false;e.attackPose=Math.max(0,(e.attackPose||0)-dt);const oldX=e.x,oldY=e.y;
   if(e.knockX||e.knockY){e.x+=(e.knockX||0)*dt;e.y+=(e.knockY||0)*dt;const decay=Math.exp(-15*dt);e.knockX*=decay;e.knockY*=decay}
   if(e.poisoned>0)e.poisoned=Math.max(0,e.poisoned-dt);
   if(e.chilled>0)e.chilled=Math.max(0,e.chilled-dt);
   if(e.feared>0)e.feared=Math.max(0,e.feared-dt);
   if(e.blackFlame>0){e.blackFlame=Math.max(0,e.blackFlame-dt);e.hp-=dt*14}
   if(e.bleed>0){e.bleed=Math.max(0,e.bleed-dt*.35);e.hp-=dt*(4+e.bleed*3)}
+  if(e.hp<=0){damage(e,0,0,'status');return}
   if(e.stun>0){e.stun-=dt;return}
   if(e.boss)updateBoss(e,s,dt);
   const p=s.p,angle=Math.atan2(p.y-e.y,p.x-e.x),distance=Math.hypot(p.x-e.x,p.y-e.y);

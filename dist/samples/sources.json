@@ -1,0 +1,32 @@
+[
+  {
+    "repo": "pixel-boy/NinjaAdventure",
+    "path": "content/character/ninja_blue/sprite.png",
+    "name": "ninja-blue.png",
+    "sha": "943b76421027181b24ff19d647fbb92c5f5f293b"
+  },
+  {
+    "repo": "pixel-boy/NinjaAdventure",
+    "path": "content/character/samurai_blue/sprite.png",
+    "name": "samurai-blue.png",
+    "sha": "62f0913c0411f9b760b11d9c78dde664dc229af2"
+  },
+  {
+    "repo": "sparklinlabs/superpowers-asset-packs",
+    "path": "medieval-fantasy/characters/0-characters.png",
+    "name": "superpowers-characters.png",
+    "sha": "14aff7f605f84229e7f95239600312739c055679"
+  },
+  {
+    "repo": "blackopsrepl/grim-delver",
+    "path": "game/assets/shade_puny/actors/player.png",
+    "name": "puny-player.png",
+    "sha": "e7cff9118de7a6197493976e3bc7062e261b6f0c"
+  },
+  {
+    "repo": "giobi/sgravoquest-assets",
+    "path": "tilesets/tiny-dungeon.png",
+    "name": "kenney-sheet.png",
+    "sha": "f6e8b937c99fe45b1b75490cc050ee5929954259"
+  }
+]

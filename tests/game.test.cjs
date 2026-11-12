@@ -4,14 +4,14 @@ function harness(saved){
   const nodes=new Map(),store=new Map(saved?Object.entries(saved):[]);let clock=0;
   function element(){let html='';return {children:[],dataset:{},style:{setProperty(){}},classList:{toggle(){},add(){},remove(){}},hidden:false,textContent:'',get innerHTML(){return html},set innerHTML(v){html=v;this.children=[]},append(e){this.children.push(e)},querySelector(){return null},querySelectorAll(){return []},insertAdjacentHTML(){},setAttribute(){},addEventListener(){},setPointerCapture(){},getContext(){return new Proxy({},{get:()=>()=>({})})}}}
   const sandbox={console,Math,Date,Set,Map,JSON,Number,Object,performance:{now:()=>clock},innerWidth:960,innerHeight:540,devicePixelRatio:1,addEventListener(){},setTimeout(){return 1},clearTimeout(){},setInterval(){},navigator:{},window:{},screen:{},document:{hidden:false,body:{dataset:{}},querySelector(s){if(!nodes.has(s))nodes.set(s,element());return nodes.get(s)},querySelectorAll(){return []},createElement:element,addEventListener(){}},localStorage:{getItem(k){return store.get(k)||null},setItem(k,v){store.set(k,v)}}};
-  vm.createContext(sandbox);for(const file of ['vendor/proton.min','vendor/wuxia-ui-pack','vendor/wuxia-sprites','profile','sound','world','bosses','enemies','combat','feedback','siege','vfx','arena','game','merchant','camp','controls','arsenal','app'])vm.runInContext(fs.readFileSync(path.join(root,'dist',file+'.js'),'utf8'),sandbox,{filename:file+'.js'});
+  vm.createContext(sandbox);for(const file of ['vendor/proton.min','vendor/wuxia-ui-pack','vendor/wuxia-sprites','profile','sound','world','bosses','enemies','sect','trajectories','combat','feedback','siege','vfx','arena','game','merchant','camp','controls','arsenal','app'])vm.runInContext(fs.readFileSync(path.join(root,'dist',file+'.js'),'utf8'),sandbox,{filename:file+'.js'});
   return {run:code=>vm.runInContext(code,sandbox),nodes,store,advance(ms){clock+=ms;vm.runInContext('tick()',sandbox)}}
 }
 test('all stages, factions, combat and rendering remain finite for a two-minute run',()=>{for(let f=0;f<3;f++){const h=harness();h.run(`selected=${f};stageId=${f};start();state.p.hp=state.p.max=1e8;`);for(let i=0;i<2400;i++)h.run("if(mode==='upgrade')$('#choices').children[0].onclick();if(mode==='play')update(.05)");assert.ok(h.run('state.time')>100);assert.ok(h.run('state.kills')>0);assert.ok(h.run('state.enemies.every(e=>e.f!==selected)'));assert.ok(h.run('Number.isFinite(state.p.x)&&Number.isFinite(state.p.hp)'));h.run('render()')}});
 test('elapsed-time loop, pause and pointer reset',()=>{const h=harness();h.run('start()');for(let i=0;i<20;i++)h.advance(100);assert.ok(h.run('state.time')>=1.9);h.run("pointer={dx:40,dy:0};keys.d=true;pause()");assert.equal(h.run('mode'),'pause');assert.equal(h.run('pointer'),null);assert.ok(h.nodes.get('#choices').innerHTML.includes('wx-pause-box'));const t=h.run('state.time');h.advance(100);assert.equal(h.run('state.time'),t);h.run('pause()');assert.equal(h.run('mode'),'play')});
 test('each weapon attacks independently and evolution recipes activate',()=>{const h=harness();h.run('start();state.skills=[4,4,2,4,0,0,2,2];syncSkills();state.enemies=[{x:40,y:0,hp:10000,f:1,max:10000}];runAttacks(state,.01)');assert.equal(h.run('state.evolved&&state.rain&&state.thunder'),true);assert.ok(h.run("state.shots.some(b=>b.type==='sword')&&state.shots.some(b=>b.type==='knife')"));assert.ok(h.run('state.enemies[0].hp')<10000)});
 test('charge direction locks and projectile collision sweeps a segment',()=>{const h=harness();h.run("start();state.enemies=[{x:90,y:0,f:2,hp:100,max:100,speed:30,fire:0,charge:0}];updateEnemy(state.enemies[0],state,.01)");const a=h.run('state.enemies[0].chargeAngle');h.run('state.p.y=200;updateEnemy(state.enemies[0],state,.01)');assert.equal(h.run('state.enemies[0].chargeAngle'),a);assert.equal(h.run('segmentDistance(50,0,0,0,100,0)'),0)});
-test('midboss does not satisfy final boss victory condition',()=>{const h=harness();h.run('start();summonBoss(false);damage(state.enemies.at(-1),1e6)');assert.notEqual(h.run('state.bossDead'),true);h.run('summonBoss(true);damage(state.enemies.at(-1),1e6)');assert.equal(h.run('state.bossDead'),true)});
+test('midboss does not satisfy final boss victory condition',()=>{const h=harness();h.run('start();summonBoss(false);for(let i=0;i<10;i++){state.time+=.51;damage(state.enemies.at(-1),1e6)}');assert.notEqual(h.run('state.bossDead'),true);h.run('summonBoss(true);for(let i=0;i<10;i++){state.time+=.51;damage(state.enemies.at(-1),1e6)}');assert.equal(h.run('state.bossDead'),true)});
 test('run payout is idempotent; training charges once and respects cap',()=>{const h=harness();h.run('start();state.kills=30;state.time=20;end(false)');assert.equal(h.run('Profile.data.silver'),32);h.run('end(false)');assert.equal(h.run('Profile.data.runs'),1);assert.equal(h.run("Profile.buy('power')"),false);h.run('Profile.data.silver=5000');for(let i=0;i<8;i++)h.run("Profile.buy('power')");assert.equal(h.run('Profile.data.training.power'),5);assert.equal(h.run('Profile.data.silver'),4100);assert.equal(h.run("Profile.buy('__proto__')"),false)});
 test('save schema clamps invalid values and recovers malformed storage',()=>{let h=harness({'murim.profile.v1':'broken'});assert.equal(h.run('Profile.data.silver'),0);h=harness({'murim.profile.v1':JSON.stringify({version:1,silver:-99,training:{power:100},history:[null,{kills:9,faction:99}]})});assert.equal(h.run('Profile.data.silver'),0);assert.equal(h.run('Profile.data.training.power'),5);assert.equal(h.run('Profile.data.history[0].faction'),2)});
 test('all referenced scripts, manifest icons and precache files exist',()=>{const html=fs.readFileSync(path.join(root,'dist/index.html'),'utf8');for(const m of html.matchAll(/(?:src|href)="([^"#]+)"/g)){if(m[1].startsWith('http'))continue;assert.ok(fs.existsSync(path.join(root,'dist',m[1].split('?')[0])),m[1])}const manifest=JSON.parse(fs.readFileSync(path.join(root,'dist/manifest.webmanifest')));assert.equal(manifest.orientation,'landscape');for(const i of manifest.icons)assert.ok(fs.existsSync(path.join(root,'dist',i.src)));const sw=fs.readFileSync(path.join(root,'dist/sw.js'),'utf8'),files=sw.match(/const FILES=\[([\s\S]*?)\]/)[1].matchAll(/'([^']+)'/g);for(const f of files)assert.ok(fs.existsSync(path.join(root,'dist',f[1]==='./'?'index.html':f[1])),f[1]);for(const file of fs.readdirSync(path.join(root,'dist')).filter(f=>f.endsWith('.js')))new vm.Script(fs.readFileSync(path.join(root,'dist',file),'utf8'),{filename:file})});
@@ -33,7 +33,7 @@ test('36 unique skills, 36 unique SVG icons, ranged Demonic Cult offense, and 12
   for(let f=0;f<3;f++){
     for(let s=0;s<4;s++){
       h.run(`selected=${f};subSect=${s};renderSubSects();start();state.enemies=[{x:260,y:0,f:(${f}+1)%3,hp:120,max:120,speed:50,fire:1,charge:0,bleed:2,poisoned:.5,blackFlame:.5},{x:295,y:0,f:(${f}+1)%3,hp:300,max:300,speed:50,fire:1,charge:0}];runAttacks(state,.02);render()`);
-      assert.ok(h.run('state.shots.length')>0, `Faction ${f} subSect ${s} must fire ranged projectiles against distant enemy`);
+      assert.ok(h.run('state.shots.length+(state.pendingShots?.length||0)')>0, `Faction ${f} subSect ${s} must fire ranged projectiles against distant enemy`);
       h.run('damage(state.enemies[0],500,0)');
       assert.ok(h.run('state.enemies[1].hp')<300);
     }
@@ -112,4 +112,35 @@ test('64px artwork rasterizes different preparation and strike poses',()=>{
 test('opening wave includes human enemy variety and corpses preserve appearances',()=>{
  const h=harness();h.run('start();state.enemies=[];for(let i=0;i<180;i++)spawn()');assert.ok(h.run('new Set(state.enemies.map(e=>e.role)).size')>=3);assert.ok(h.run('new Set(state.enemies.map(e=>e.look)).size')>=3);
  h.run('const chosen=state.enemies.find(e=>e.look===2);chosen.hp=1;damage(chosen,1000,0)');assert.equal(h.run('state.corpses.at(-1).look'),2);
+});
+
+test('single projectiles stop at nearest hit and piercing has a finite target limit',()=>{
+ const h=harness();h.run('start();state.skills.fill(0);state.sect.cooldown=999;state.spawn=state.siegeNext=999;state.enemies=[100,140,180].map(x=>({x,y:0,f:1,hp:1000,max:1000,speed:0,fire:999}));shot(0,1000,20,"knife",1,"default");update(.2)');
+ assert.ok(h.run('state.enemies[0].hp')<1000);assert.equal(h.run('state.enemies[1].hp'),1000);assert.equal(h.run('state.enemies[2].hp'),1000);assert.equal(h.run('state.shots.length'),0);
+ h.run('state.enemies=[40,70,100,130,160].map(x=>({x,y:0,f:1,hp:1000,max:1000,speed:0,fire:999}));shot(0,1000,20,"sword",1,"blood_spear");update(.2)');
+ assert.equal(h.run('state.enemies.filter(e=>e.hp<1000).length'),4);assert.equal(h.run('state.shots.length'),0);
+});
+test('projectile pool is bounded and distinct impact policies are explicit',()=>{
+ const h=harness();h.run('start();state.shots=[];for(let i=0;i<500;i++)shot(0,100,20,"knife")');assert.equal(h.run('state.shots.length'),220);
+ const modes=['taiji','wraith','emerald_staff','venom_wave','plum'].map(style=>h.run(`projectilePolicy('sword','${style}').mode`));assert.equal(new Set(modes).size,5);
+ assert.equal(h.run('projectilePolicy("fire","black_dragon").remainingHits'),1);
+});
+test('all 12 sects have an available innate skill and all mastered signatures continue to sect growth',()=>{
+ const h=harness();assert.equal(h.run('new Set(SectSystem.catalog.map(c=>c.type)).size'),12);
+ for(let f=0;f<3;f++)for(let sub=0;sub<4;sub++){
+  h.run(`selected=${f};subSect=${sub};start();state.enemies=[{x:100,y:0,f:(${f}+1)%3,hp:10000,max:10000,speed:0,fire:999}];state.sect.cooldown=0;SectSystem.update(state,.01)`);assert.equal(h.run('state.sect.casts'),1);assert.equal(h.run('state.skills.filter(Boolean).length'),1);
+  h.run('for(const i of SectSystem.slots())state.skills[i]=5;upgrade()');assert.equal(h.run('mode'),'upgrade');assert.equal(h.nodes.get('#choices').children.length,3);assert.ok(h.nodes.get('#modalEyebrow').textContent.includes('문파 심화'));
+  h.nodes.get('#choices').children[0].onclick();assert.equal(h.run('state.sect.mastery[0]'),1);assert.equal(h.run('mode'),'play');
+ }
+ h.run('for(let j=0;j<50;j++)for(let i=0;i<3;i++)SectSystem.learn(state,i)');assert.equal(h.run('state.sect.mastery.every(n=>n===6)'),true);assert.equal(h.run('SectSystem.upgrades(state)[0].mastery'),3);
+});
+test('unfinished signature is guaranteed and ordinary manuals remain optional after mastery',()=>{
+ const h=harness();h.run('selected=0;subSect=2;start();state.skills.fill(5);state.skills[1]=4;upgrade()');assert.equal(h.nodes.get('#choices').children[0].dataset.skill,'1');
+ h.run('state.skills[1]=5;state.skills[3]=0;upgrade()');assert.ok(h.nodes.get('#modalTitle').textContent.includes('매화삼첩'));h.nodes.get('#resume').onclick();assert.equal(h.nodes.get('#choices').children[0].dataset.skill,'3');
+});
+test('boss burst guard, late shields, and lethal damage-over-time resolve correctly',()=>{
+ const h=harness();h.run('start();state.enemies=[{x:100,y:0,f:1,hp:1000,max:1000,boss:true}];Profile.data.training.power=5;damage(state.enemies[0],100000,0);damage(state.enemies[0],100000,0)');assert.equal(h.run('state.enemies[0].hp'),880);
+ h.run('state.time+=.51;damage(state.enemies[0],100000,0)');assert.equal(h.run('state.enemies[0].hp'),760);
+ h.run('state.enemies=[{x:100,y:0,f:1,hp:100,max:100,guardHits:2}];damage(state.enemies[0],20,0)');assert.equal(h.run('state.enemies[0].guardHits'),1);assert.ok(h.run('state.enemies[0].hp')>90);
+ h.run('state.enemies=[{x:100,y:0,f:1,hp:1,max:100,bleed:4,speed:0,fire:999}];updateEnemy(state.enemies[0],state,.2)');assert.equal(h.run('state.enemies[0].dead'),true);
 });

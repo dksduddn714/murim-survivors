@@ -25,3 +25,6 @@ C 스타일 아군/적 렌더러 적용 완료. vendor/wuxia-sprites.js의 frame
 
 ## v1.5 공격 시스템
 combat.js의 beginAttack/updateAttackMotion에서 .42초 공격 사이클, .12초 1회 contact와 pendingShots 방출. 비주력 자동 무공은 즉시 발동 유지. sprite frame()의 attack 값은 boolean 대신 1~5 포즈. 기존 true는3으로 호환. 원본96×96, 몸체64px, 캔버스 정수 래스터. renderer cachedFrames 최대1024.
+
+## v1.6
+sect.js: 12종 절초, 위력/순환/확장 심화각6, 완성 후 운기. trajectories.js: 탄도정책/명중수/폭발/도탄/왕복/독영역. shot()은 탄환 객체 또는 풀포화시null 반환. 전체220개 제한. collision은 sweep 내 거리순 처리 후 consume. 보스damage예산은 최종배율 적용 후0.5초창당max12%. UI description도 정책에 맞춤. 공개표본은 art-samples.html 및 samples/*, 인게임아트교체없음. 시뮬레이션 검증과 실제 모바일FPS를 혼동하지 말 것.

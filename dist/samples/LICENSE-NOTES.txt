@@ -1,0 +1,6 @@
+REFERENCE SAMPLES ONLY — not integrated as game actors.
+Ninja Adventure: Pixel-Boy & AAA, CC0 per https://pixel-boy.itch.io/ninja-adventure-asset-pack
+Puny player sheet: Shade Puny family, redistributed by blackopsrepl/grim-delver; folder LICENSE.md declares CC0. https://github.com/blackopsrepl/grim-delver/blob/main/game/assets/shade_puny/LICENSE.md
+Superpowers Medieval Fantasy: Pixel-Boy / Sparklin Labs, CC0 per root LICENSE.txt.
+Tiny Dungeon tileset: Kenney, from giobi/sgravoquest-assets; original https://kenney.nl/assets/tiny-dungeon declares CC0.
+Exact file Git blob hashes are in sources.json. Full CC0 text is LICENSE-CC0.txt.

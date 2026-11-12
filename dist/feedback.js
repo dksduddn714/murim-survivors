@@ -23,7 +23,7 @@ function deathFeedback(e){
   if([10,25,50,100].includes(s.combo))showNotice(s.combo+' 연속 격파!');
 }
 function updateFeedback(s,dt){
-  s.impactCooldown=Math.max(0,(s.impactCooldown||0)-dt);
+  s.depthClock=Math.max(0,(s.depthClock||0)-dt);s.impactCooldown=Math.max(0,(s.impactCooldown||0)-dt);
   s.comboTimer=Math.max(0,s.comboTimer-dt);s.swing=Math.max(0,(s.swing||0)-dt);
   compact(s.particles,p=>{p.t-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=Math.exp(-5*dt);p.vy+=85*dt;return p.t>0});
   compact(s.corpses,d=>{d.t-=dt;d.x+=Math.cos(d.a)*42*dt;d.y+=Math.sin(d.a)*28*dt;return d.t>0});
@@ -47,7 +47,7 @@ function drawEnemy(e){
   ctx.save();ctx.translate(e.x,e.y);if(e.hit>0)ctx.scale(1.14,.9);sprite(0,0,e.f,false,e.boss,e.hit>0);ctx.restore();
 }
 function updateHUD(s,dt){
-  s.hudClock=(s.hudClock||0)-dt;if(s.hudClock>0)return;s.hudClock=.08;const p=s.p;
+  s.hudClock=(s.hudClock||0)-dt;if(s.hudClock>0)return;s.hudClock=.08;SectSystem.hud(s);const p=s.p;
   $('#hpvalue').textContent=Math.ceil(Math.max(0,p.hp))+' / '+p.max;$('#hud').classList.toggle('critical',p.hp/p.max<.25);bossHUD();
   $('#hp').style.width=Math.max(0,p.hp/p.max*100)+'%';$('#xp').style.width=Math.min(100,s.xp/s.need*100)+'%';$('#clock').textContent=format(s.time);$('#kills').textContent=s.kills.toLocaleString();$('#level').textContent='경지 '+s.level;$('#regionLabel').textContent=stages[stageId]?.name||'';
   const curWave=Math.min(5,(s.wave||0)+1);
@@ -67,3 +67,5 @@ function updateHUD(s,dt){
 }
 
 function drawHeroFocus(s){if(s.inv>0&&Math.floor(s.inv*20)%2)return;ctx.save();ctx.strokeStyle='#143b2ee0';ctx.lineWidth=4;ctx.beginPath();ctx.ellipse(s.p.x,s.p.y+13,19,8,0,0,7);ctx.stroke();ctx.strokeStyle='#f4e5ac';ctx.lineWidth=1.4;ctx.beginPath();ctx.ellipse(s.p.x,s.p.y+13,19,8,0,0,7);ctx.stroke();ctx.restore()}
+
+function renderOrder(s){if(!s.renderEnemies||s.depthClock<=0){s.renderEnemies=s.enemies.filter(e=>!e.dead).sort((a,b)=>a.y-b.y);s.depthClock=.08}return s.renderEnemies}
