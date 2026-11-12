@@ -1,5 +1,5 @@
 'use strict';
-window.MURIM_VERSION='1.2.0';
+window.MURIM_VERSION='1.3.0';
 const $=s=>document.querySelector(s),c=$('#world'),ctx=c.getContext('2d');let W,H,dpr;function resize(){dpr=1;W=innerWidth;H=innerHeight;c.width=W*dpr;c.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.imageSmoothingEnabled=false}addEventListener('resize',resize);resize();
 const factions=[{name:'정파',color:'#38bdf8',enemy:[1,2],weapon:'태극·매화·금강·항룡'},{name:'사파',color:'#f43f5e',enemy:[0,2],weapon:'혈도·독공·귀영·녹림'},{name:'마교',color:'#c084fc',enemy:[0,1],weapon:'천마·혈마·귀마·흑염'}];let selected=0,subSect=0,mode='menu',state=null,keys={},pointer=null,last=0,ambient=0;
 let names=['태극검법','매화검법','양의검법','대력금강장','금강불괴신공','무당제운종','자하신공','항룡십팔장','나한권','항마곤법','타구봉법','태극권'];

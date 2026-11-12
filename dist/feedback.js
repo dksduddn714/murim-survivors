@@ -28,7 +28,7 @@ function updateFeedback(s,dt){
   compact(s.corpses,d=>{d.t-=dt;d.x+=Math.cos(d.a)*42*dt;d.y+=Math.sin(d.a)*28*dt;return d.t>0});
   compact(s.impacts,h=>{h.t-=dt;return h.t>0});
 }
-function drawCorpses(s){for(const d of s.corpses){const age=1-d.t/d.max;ctx.save();ctx.translate(d.x,d.y);ctx.rotate(d.turn*Math.min(1.5,age*3.6));ctx.scale(1,1-age*.3);ctx.globalAlpha=Math.min(1,d.t/.28);sprite(0,0,d.f,false,d.boss,d.t>.57);ctx.restore()}}
+function drawCorpses(s){for(const d of s.corpses){const age=1-d.t/d.max;ctx.save();ctx.translate(d.x,d.y);ctx.rotate(d.turn*Math.min(1.5,age*3.6));ctx.scale(1,1-age*.3);ctx.globalAlpha=Math.min(1,d.t/.28);WuxiaSprites.drawEnemy(ctx,{x:0,y:0,f:d.f,role:d.role,boss:d.boss,hit:d.t>.57?1:0},ambient);ctx.restore()}}
 function drawImpacts(s){
   for(const p of s.particles){ctx.globalAlpha=p.t/p.max;rect(p.x,p.y,p.size,p.size,p.color)}ctx.globalAlpha=1;
   for(const h of s.impacts){

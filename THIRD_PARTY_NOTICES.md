@@ -21,10 +21,8 @@ Local SHA-256: `e45b52fa4411a37c8b98810d23548bce960eb6dd4b8116153bdf2aafbacffb48
 * License: CC0 1.0 Universal / MIT License, retained in `dist/vendor/WuxiaUI-LICENSE.txt` and `dist/credits.html`.
 * Usage: Provides offline-bundled 24x24 pixel-wuxia SVG icons for the 12 martial arts skills and 6 dual-5★ fusion ultimates, jade-plaque / bamboo-scroll UI frame styling, Ultimate recipe progress calculation, and battlefield pressure state formatting.
 
-## 3. Wuxia Procedural Pixel Sprites (`dist/vendor/wuxia-sprites.js`)
+## 3. C-style character renderer
 
-* References & Inspiration:
-  * Procedural layered pixel sprite techniques inspired by `zfedoran/pixel-sprite-generator` (`https://github.com/zfedoran/pixel-sprite-generator`, MIT License) and Liberated Pixel Cup (`https://github.com/liberatedpixelcup/Universal-LPC-Spritesheet-Character-Generator`, CC0 artwork layers).
-* Local copy: `dist/vendor/wuxia-sprites.js`.
-* License: MIT / CC0 1.0 Universal, retained in `dist/vendor/WuxiaUI-LICENSE.txt` and `dist/credits.html`.
-* Usage: Renders distinct Wuxia pixel-art heroes (정파 청운검협, 사파 추혼자객, 마교 혈월마군) and 8 enemy archetypes (검수, 홍영장창병, 삿갓암기수, 흑의자객, 현철방패병, 혈마역사, 부적술사, 장로/선봉장) directly on the HTML5 2D Canvas without external image dependencies.
+- `dist/vendor/wuxia-sprites.js` is project-authored pixel art and rendering code, replacing the earlier procedural character renderer in v1.3.
+- License: MIT. No external sprite sheet or third-party artwork is embedded.
+- Uses integer-grid drawing and cached animation frames for 12 heroes and 8 enemy roles across 3 factions.

@@ -74,3 +74,12 @@ test('edge reinforcements stay inside arena and minimap handles a dense battlefi
  assert.ok(h.run('state.enemies.every(e=>e.x>=-1200&&e.x<=1200&&e.y>=-800&&e.y<=800)'));
  h.run('end(false);drawMinimap(state)');assert.equal(h.nodes.get('#minimap').hidden,false);
 });
+test('C sprite catalogue covers all factions and roles with cached pixel frames',()=>{
+ const h=harness();assert.equal(h.run('WuxiaSprites.style'),'C');
+ assert.equal(h.run('WuxiaSprites.heroNames.flat().length'),12);assert.equal(h.run('WuxiaSprites.roles.length'),8);
+ h.run('for(let f=0;f<3;f++){for(let sub=0;sub<4;sub++)for(let frame=0;frame<3;frame++)WuxiaSprites.frame(f,"hero",sub,frame,false);for(const role of WuxiaSprites.roles){WuxiaSprites.frame(f,role,0,0,false);WuxiaSprites.frame(f,role,0,1,true)}}');
+ assert.equal(h.run('WuxiaSprites.frame(1,"shield",0,0,false)===WuxiaSprites.frame(1,"shield",0,0,false)'),true);
+ assert.equal(h.run('WuxiaSprites.frame(0,"hero",0,0,false).width'),40);
+ assert.ok(h.run('WuxiaSprites.cachedFrames')<300);
+ h.run('start();for(const role of WuxiaSprites.roles)deathFeedback({x:0,y:0,f:1,role,boss:role==="boss"});drawCorpses(state)');
+});
