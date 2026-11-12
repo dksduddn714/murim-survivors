@@ -28,3 +28,6 @@ combat.js의 beginAttack/updateAttackMotion에서 .42초 공격 사이클, .12�
 
 ## v1.6
 sect.js: 12종 절초, 위력/순환/확장 심화각6, 완성 후 운기. trajectories.js: 탄도정책/명중수/폭발/도탄/왕복/독영역. shot()은 탄환 객체 또는 풀포화시null 반환. 전체220개 제한. collision은 sweep 내 거리순 처리 후 consume. 보스damage예산은 최종배율 적용 후0.5초창당max12%. UI description도 정책에 맞춤. 공개표본은 art-samples.html 및 samples/*, 인게임아트교체없음. 시뮬레이션 검증과 실제 모바일FPS를 혼동하지 말 것.
+
+
+v1.7: primaryStats / weaponGrowthUpgrade / drawWeaponArcs in combat.js; 3-level weapon growth, all arts accessible via alternate button. Role-based hostile fire, bounded spatial separation. No save schema changes. Original actor art remains; commercial quality not established.

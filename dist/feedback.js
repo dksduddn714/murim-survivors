@@ -2,7 +2,7 @@
 // Short-lived combat visuals are independent of enemy AI and capped for mobile devices.
 function compact(list,keep){let w=0;for(let i=0;i<list.length;i++)if(keep(list[i]))list[w++]=list[i];list.length=w;return list}
 function hitFeedback(e,n,direction,kind='sword'){
-  const s=state;if(n<6)return;
+  const s=state;if(n<6||kind==='poison'||kind==='ring'||kind==='status')return;
   const a=direction??Math.atan2(e.y-s.p.y,e.x-s.p.x);
   const kMult=kind==='stomp'?1.25:kind==='knife'?.65:kind==='ring'?.85:1;
   const roleResist=e.role==='shield'?.35:e.role==='brute'?.55:1;
@@ -23,6 +23,7 @@ function deathFeedback(e){
   if([10,25,50,100].includes(s.combo))showNotice(s.combo+' 연속 격파!');
 }
 function updateFeedback(s,dt){
+  compact(s.weaponArcs||[],h=>{h.t-=dt;return h.t>0});s.heroKick=Math.max(0,(s.heroKick||0)-dt);
   s.depthClock=Math.max(0,(s.depthClock||0)-dt);s.impactCooldown=Math.max(0,(s.impactCooldown||0)-dt);
   s.comboTimer=Math.max(0,s.comboTimer-dt);s.swing=Math.max(0,(s.swing||0)-dt);
   compact(s.particles,p=>{p.t-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=Math.exp(-5*dt);p.vy+=85*dt;return p.t>0});

@@ -99,9 +99,9 @@ test('redesigned skill silhouettes render every cast and projectile family',()=>
 });
 test('primary attack prepares, releases once and keeps movement enabled',()=>{
  const h=harness();h.run('start();state.skills.fill(0);state.skills[4]=1;state.cooldowns={guard:999,innate:0};state.enemies=[{x:50,y:0,f:1,hp:1000,max:1000,speed:0,fire:99}];runAttacks(state,.01)');
- assert.equal(h.run('state.attack.phase'),1);assert.ok(h.run('state.pendingShots.length')>0);assert.equal(h.run('state.shots.length'),0);
+ assert.equal(h.run('state.attack.phase'),1);assert.equal(h.run('state.pendingShots?.length||0'),0);assert.equal(h.run('state.shots.length'),0);
  h.run('updateAttackMotion(state,.06)');assert.equal(h.run('state.attack.phase'),2);assert.equal(h.run('state.shots.length'),0);
- h.run('updateAttackMotion(state,.07)');assert.equal(h.run('state.attack.phase'),3);assert.ok(h.run('state.shots.length')>0);assert.equal(h.run('state.pendingShots.length'),0);
+ h.run('updateAttackMotion(state,.07)');assert.equal(h.run('state.attack.phase'),3);assert.ok(h.run('state.enemies[0].hp')<1000);assert.equal(h.run('state.shots.length'),0);assert.equal(h.run('state.weaponArcs.length'),1);
  const hp=h.run('state.enemies[0].hp'),count=h.run('state.shots.length');h.run('updateAttackMotion(state,.03)');assert.equal(h.run('state.enemies[0].hp'),hp);assert.equal(h.run('state.shots.length'),count);
  h.run('keys.d=true;state.inv=999;const before=state.p.x;update(.01);');assert.ok(h.run('state.p.x')>0);
 });
@@ -143,4 +143,20 @@ test('boss burst guard, late shields, and lethal damage-over-time resolve correc
  h.run('state.time+=.51;damage(state.enemies[0],100000,0)');assert.equal(h.run('state.enemies[0].hp'),760);
  h.run('state.enemies=[{x:100,y:0,f:1,hp:100,max:100,guardHits:2}];damage(state.enemies[0],20,0)');assert.equal(h.run('state.enemies[0].guardHits'),1);assert.ok(h.run('state.enemies[0].hp')>90);
  h.run('state.enemies=[{x:100,y:0,f:1,hp:1,max:100,bleed:4,speed:0,fire:999}];updateEnemy(state.enemies[0],state,.2)');assert.equal(h.run('state.enemies[0].dead'),true);
+});
+
+test('primary melee has finite reach and target budget, ranged retains delayed release',()=>{
+ const h=harness();h.run("selected=0;subSect=2;start();state.skills.fill(0);state.skills[1]=1;state.cooldowns={knife:999,innate:0};state.enemies=Array.from({length:8},(_,i)=>({x:45+i*2,y:0,hp:1000,max:1000,f:1}));runAttacks(state,.01);updateAttackMotion(state,.13)");
+ assert.equal(h.run('state.enemies.filter(e=>e.hp<1000).length'),2);
+ h.run("selected=1;subSect=1;start();state.skills.fill(0);state.skills[6]=1;state.enemies=[{x:280,y:0,hp:1000,max:1000,f:0}];runAttacks(state,.01)");assert.ok(h.run('state.pendingShots.length')>0);h.run('updateAttackMotion(state,.13)');assert.ok(h.run('state.shots.length')>0);
+});
+test('weapon growth changes damage reach cadence and allows ordinary manuals',()=>{
+ const h=harness();h.run('start();state.level=3;const baseWeapon=primaryStats(state);upgrade()');assert.equal(h.run('mode'),'upgrade');assert.equal(h.nodes.get('#choices').children.length,3);
+ h.run("$('#choices').children[0].onclick()");assert.equal(h.run('state.weaponGrowth[0]'),1);assert.ok(h.run('primaryStats(state).damage>baseWeapon.damage'));
+ h.run("upgrade();$('#resume').onclick()");assert.ok(h.nodes.get('#choices').children.every(b=>b.dataset.skill!==undefined));
+ h.run("state.weaponGrowth=[5,5,5];upgrade()");assert.ok(h.nodes.get('#choices').children.length>0);
+});
+test('enemy attack depends on role rather than faction, without overlapping-body teleport',()=>{
+ const h=harness();h.run("start();state.enemies=[{x:190,y:0,hp:100,max:100,speed:40,f:1,role:'disciple',fire:0},{x:191,y:0,hp:100,max:100,speed:40,f:2,role:'archer',fire:0}];buildEnemyGrid(state);updateEnemy(state.enemies[0],state,.02)");assert.equal(h.run('state.hostile.length'),0);
+ h.run('updateEnemy(state.enemies[1],state,.02)');assert.equal(h.run('state.hostile.length'),1);assert.ok(h.run('Math.hypot(state.enemies[0].x-190,state.enemies[0].y)<4'));
 });

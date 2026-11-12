@@ -1,10 +1,28 @@
 'use strict';
-function beginAttack(s,angle){s.attack={age:0,duration:.42,phase:1,angle,face:Math.cos(angle)<0?-1:1};}
+// A weapon's reach, recovery and target budget are intentional weaknesses.
+function primaryStats(s){
+ const id=selected*4+subSect,heavy=[0,3,7].includes(id),ranged=[5,9,10,11].includes(id),swift=[2,6].includes(id),g=s.weaponGrowth||[0,0,0];
+ return {id,heavy,ranged,swift,reach:(heavy?132:swift?104:118)+g[1]*15,damage:(heavy?42:swift?27:34)+s.level*1.7+g[0]*10,period:Math.max(.32,(heavy?.88:swift?.54:.68)-g[2]*.055),targets:(heavy?4:swift?2:3)+Math.floor(g[1]/2),arc:heavy?1.1:.8};
+}
+function beginAttack(s,angle){const w=primaryStats(s);s.attack={age:0,duration:Math.min(.46,w.period*.7),phase:1,angle,face:Math.cos(angle)<0?-1:1,weapon:w};}
+function weaponGrowthUpgrade(){
+ const s=state,g=s.weaponGrowth??=[0,0,0],labels=['날 세우기','검로 확장','연격 수련'],details=['기본 타격 +10 · 강한 한 방',primaryStats(s).ranged?'주력 탄 크기 +8% · 영역 반경 +8%':'사거리 +15 · 2회마다 타격 대상 +1','기본 공격 간격 −0.055초'];
+ mode='upgrade';pointer=null;keys={};$('#modal').hidden=false;$('#modalEyebrow').textContent='주력 무기 수련 · 경지 '+s.level;$('#modalTitle').textContent='싸우는 방식을 단련하세요';$('#again').hidden=true;$('#retry').hidden=true;$('#choices').innerHTML='';
+ for(let i=0;i<3;i++){if(g[i]>=5)continue;const b=document.createElement('button');b.innerHTML='<span class="wx-sect-badge sig">주력 무기</span><strong>'+labels[i]+' <small>'+g[i]+' → '+(g[i]+1)+'</small></strong><small>'+details[i]+'</small>';b.onclick=()=>{if(mode!=='upgrade')return;g[i]++;(s.cooldowns??={}).innate=0;$('#modal').hidden=true;mode='play';$('#resume').onclick=pause;$('#resume').textContent='계속하기';Sound.play('level');showNotice(labels[i]+' · 다음 공격부터 적용')};$('#choices').append(b)}
+ $('#resume').hidden=false;$('#resume').textContent='문파 비급 배우기';$('#resume').onclick=()=>{upgrade(true);$('#resume').textContent='계속하기';$('#resume').onclick=pause};
+}
+function drawWeaponArcs(s){for(const h of s.weaponArcs||[]){const k=h.t/h.max,a=h.a,spread=h.arc;ctx.save();ctx.translate(h.x,h.y-18);ctx.rotate(a);ctx.globalAlpha=k;ctx.strokeStyle='#252936';ctx.lineWidth=13*k+3;ctx.beginPath();ctx.arc(0,0,h.r,-spread,spread);ctx.stroke();ctx.strokeStyle=h.color;ctx.lineWidth=8*k+2;ctx.stroke();ctx.strokeStyle='#fff4d7';ctx.lineWidth=3*k;ctx.beginPath();ctx.arc(0,0,h.r-3,-spread,spread*.7);ctx.stroke();ctx.restore()}}
+
 function updateAttackMotion(s,dt){
  if(s.attack){s.attack.age+=dt;
   if(s.attack.age>=.12&&!s.attack.contact){s.attack.contact=true;const a=s.attack.angle;
-   VFX.cast('slash',s.p.x,s.p.y-24,{a,r:55,lv:1,color:factions[selected].color});
-   for(const e of s.enemies){if(e.dead)continue;const dx=e.x-s.p.x,dy=e.y-s.p.y,d=Math.hypot(dx,dy),da=Math.atan2(Math.sin(Math.atan2(dy,dx)-a),Math.cos(Math.atan2(dy,dx)-a));if(d<74&&Math.abs(da)<1)damage(e,10+s.level*1.2,a,'sword')}
+   const w=s.attack.weapon||primaryStats(s);
+   if(!w.ranged){
+    (s.weaponArcs??=[]).push({x:s.p.x,y:s.p.y,a,r:w.reach,arc:w.arc,t:.18,max:.18,color:factions[selected].color});
+    const victims=s.enemies.filter(e=>!e.dead&&Math.hypot(e.x-s.p.x,e.y-s.p.y)<w.reach&&Math.abs(Math.atan2(Math.sin(Math.atan2(e.y-s.p.y,e.x-s.p.x)-a),Math.cos(Math.atan2(e.y-s.p.y,e.x-s.p.x)-a)))<w.arc).sort((e,o)=>Math.hypot(e.x-s.p.x,e.y-s.p.y)-Math.hypot(o.x-s.p.x,o.y-s.p.y)).slice(0,w.targets);
+    for(const e of victims)damage(e,w.damage,a,w.heavy?'stomp':'sword');
+    Sound.play(w.heavy?'heavy':'slash');if(victims.length){s.heroKick=.11;s.impactBeat=Math.max(s.impactBeat||0,w.heavy?.035:.018)}
+   }
   }
  const t=s.attack.age;s.attack.phase=t<.055?1:t<.12?2:t<.2?3:t<.3?4:t<.42?5:0;if(t>=s.attack.duration)s.attack=null}
  if(s.pendingShots){for(const b of s.pendingShots){b.delay-=dt;if(b.delay<=0){b.x=s.p.x;b.y=s.p.y-12;delete b.delay;s.shots.push(b);Sound.play('slash')}}compact(s.pendingShots,b=>b.delay>0)}
@@ -12,7 +30,7 @@ function updateAttackMotion(s,dt){
 function shot(a,spd,dmg,type,scale=1,style='default',homing=false){
  if(state.shots.length+(state.pendingShots?.length||0)>=220)return null;
  const b={...projectilePolicy(type,style,scale),x:state.p.x,y:state.p.y-12,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,t:scale>1.2?1.55:1.28,damage:dmg,type,scale,style,homing,hit:new Set()};
- if(state._windup){b.delay=.12;(state.pendingShots??=[]).push(b)}else state.shots.push(b);return b;
+ if(state._windup){const g=state.weaponGrowth||[0,0,0];if(primaryStats(state).ranged){b.scale*=1+g[1]*.08;if(b.blast)b.blast*=1+g[1]*.08}b.delay=.12;(state.pendingShots??=[]).push(b)}else state.shots.push(b);return b;
 }
 function runAttacks(s,dt){
   updateAttackMotion(s,dt);
@@ -28,8 +46,10 @@ function runAttacks(s,dt){
 
   // 0. 12문파 고유 원거리 기본 절초 (Innate Ranged Signature Attack — active whenever the player has any skill enabled)
   if(target&&s.skills.some(Boolean)&&s.cooldowns.innate<=0){
-    s.cooldowns.innate=0.52;beginAttack(s,angle);s._windup=true;
-    const baseDmg=19+s.level*2.2;
+    const w=primaryStats(s);s.cooldowns.innate=w.period;beginAttack(s,angle);s._windup=true;
+    const baseDmg=w.ranged?w.damage:w.damage*.65;
+    // Melee heroes release a small, single-hit echo only when the enemy is outside blade reach.
+    if(w.ranged||best>w.reach*1.35){
     if(f===0){
       const st=sub===0?'arhat':sub===1?'taiji':sub===2?'plum':'dragon_wave';
       const tp=sub===2?'knife':sub===0?'fire':'sword';
@@ -50,6 +70,7 @@ function runAttacks(s,dt){
       }else if(sub===2){
         shot(angle-.16,440,baseDmg*.85,'knife',1.05,'wraith',true);
       }
+    }
     }
   }
 

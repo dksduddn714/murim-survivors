@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="ko" data-version="1.6.0">
+<html lang="ko" data-version="1.7.0">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b0f17"><meta name="description" content="정파·사파·마교 12문파 36무공 도트 무협 액션 생존 게임">
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg"><link rel="apple-touch-icon" href="icon-192.png">
-<title>무림혈전 · 강호십이문파</title><link rel="stylesheet" href="style.css?v=16">
+<title>무림혈전 · 강호십이문파</title><link rel="stylesheet" href="style.css?v=17">
 </head>
 <body data-theme="0">
 <canvas id="world" aria-label="무림혈전 전투 화면"></canvas>
@@ -24,7 +24,7 @@
       <div class="brand-lockup">
         <span class="seal-stamp">武林</span>
         <div>
-          <div class="eyebrow">DARK WUXIA ACTION SURVIVORS <span>v1.6</span></div>
+          <div class="eyebrow">DARK WUXIA ACTION SURVIVORS <span>v1.7</span></div>
           <h1>무림<span>혈전</span><em>십이문파 출도</em></h1>
         </div>
       </div>
@@ -35,13 +35,13 @@
         <button id="options">⚙ 설정</button>
       </nav>
     </header>
-    <div class="sectionlabel"><b>1. 세력 선택 (正 · 邪 · 魔)</b><span>세력마다 12종의 전용 원거리·광역 무공과 6종의 합벽절학이 완전히 분리됩니다</span></div>
+    <div class="sectionlabel"><b>1. 세력 선택 (正 · 邪 · 魔)</b><span>무기 거리와 공격 박자를 고르고, 문파 비급으로 전투를 완성하세요</span></div>
     <div class="factions">
       <button data-f="0" class="faction selected"><b>正</b><span class="factiontag">무림맹 4대 명문</span><strong>정파 <em>正派</em></strong><small>전용 12비급 · 6합벽 <i>체력 +24 · 방어/검기</i></small><span class="factiondesc">소림사 · 무당파 · 화산파 · 개방</span></button>
       <button data-f="1" class="faction"><b>邪</b><span class="factiontag">강호 기인·살수림</span><strong>사파 <em>邪派</em></strong><small>전용 12비급 · 6합벽 <i>이속 +12 · 출혈/맹독</i></small><span class="factiondesc">혈도객 · 독공술사 · 귀영살수 · 녹림도왕</span></button>
       <button data-f="2" class="faction"><b>魔</b><span class="factiontag">천마신교 본산 4전</span><strong>마교 <em>魔敎</em></strong><small>전용 12비급 · 6합벽 <i>화력 +16% · 원거리 마공</i></small><span class="factiondesc">천마신교 · 혈마전 · 귀마전 · 흑염전</span></button>
     </div>
-    <div class="sectionlabel sub-header"><b>2. 세부 문파 · 캐릭터 선택 (원거리 주력 절초 + 전용 비급)</b><span id="enemyInfo">상대 세력 · 사파 / 마교</span></div>
+    <div class="sectionlabel sub-header"><b>2. 세부 문파 · 캐릭터 선택 (주력 무기 + 전용 절초)</b><span id="enemyInfo">상대 세력 · 사파 / 마교</span></div>
     <div id="subSects" class="subsects" aria-label="세부 문파 및 캐릭터 선택"></div>
     <div class="departure">
       <div class="battlepicker">
@@ -55,7 +55,7 @@
       </div>
       <button class="primary" id="start"><small id="startSmall">강호가 당신을 기다립니다</small>강호 출도 <span>➔</span></button>
     </div>
-    <footer><div id="best"></div><span>드래그 / WASD 이동 · SPACE 경공 · 전 캐릭터 원거리 자동공격 <a href="characters.html">도트 도감</a> <a href="art-samples.html">공개 아트 표본</a> <a href="credits.html" target="_blank" rel="noopener">오픈소스 고지</a></span></footer>
+    <footer><div id="best"></div><span>드래그 / WASD 이동 · SPACE 경공 · 무기별 자동 공격 · 3경지마다 주력 수련 <a href="characters.html">도트 도감</a> <a href="art-samples.html">공개 아트 표본</a> <a href="credits.html" target="_blank" rel="noopener">오픈소스 고지</a></span></footer>
   </section>
 </main>
 <div id="modal" class="veil" hidden><section class="dialog"><div class="eyebrow" id="modalEyebrow">내공 돌파</div><h2 id="modalTitle">무공을 선택하세요</h2><div id="choices"></div><div class="dialogactions"><button id="again" class="primary" hidden>다시 출도 ➔</button><button id="resume" class="primary" hidden>계속하기</button><button id="retry" hidden>세력 선택으로</button></div></section></div>
@@ -71,5 +71,5 @@ const menu=document.querySelector('#menu');
 if(menu&&!menu.hidden){location.reload();return}
 if(!document.querySelector('#applyUpdate')){const b=document.createElement('button');b.id='applyUpdate';b.textContent='새 버전 적용';b.onclick=()=>location.reload();document.querySelector('.menunav')?.append(b)}
 });
-</script><script src="vendor/proton.min.js?v=16"></script><script src="vendor/wuxia-ui-pack.js?v=16"></script><script src="vendor/wuxia-sprites.js?v=16"></script><script src="profile.js?v=16"></script><script src="sound.js?v=16"></script><script src="world.js?v=16"></script><script src="bosses.js?v=16"></script><script src="enemies.js?v=16"></script><script src="sect.js?v=16"></script><script src="trajectories.js?v=16"></script><script src="combat.js?v=16"></script><script src="feedback.js?v=16"></script><script src="siege.js?v=16"></script><script src="vfx.js?v=16"></script><script src="arena.js?v=16"></script><script src="game.js?v=16"></script><script src="merchant.js?v=16"></script><script src="camp.js?v=16"></script><script src="controls.js?v=16"></script><script src="arsenal.js?v=16"></script><script src="app.js?v=16"></script>
+</script><script src="vendor/proton.min.js?v=17"></script><script src="vendor/wuxia-ui-pack.js?v=17"></script><script src="vendor/wuxia-sprites.js?v=17"></script><script src="profile.js?v=17"></script><script src="sound.js?v=17"></script><script src="world.js?v=17"></script><script src="bosses.js?v=17"></script><script src="enemies.js?v=17"></script><script src="sect.js?v=17"></script><script src="trajectories.js?v=17"></script><script src="combat.js?v=17"></script><script src="feedback.js?v=17"></script><script src="siege.js?v=17"></script><script src="vfx.js?v=17"></script><script src="arena.js?v=17"></script><script src="game.js?v=17"></script><script src="merchant.js?v=17"></script><script src="camp.js?v=17"></script><script src="controls.js?v=17"></script><script src="arsenal.js?v=17"></script><script src="app.js?v=17"></script>
 </body></html>
