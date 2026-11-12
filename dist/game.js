@@ -1,5 +1,5 @@
 'use strict';
-window.MURIM_VERSION='1.3.0';
+window.MURIM_VERSION='1.4.0';
 const $=s=>document.querySelector(s),c=$('#world'),ctx=c.getContext('2d');let W,H,dpr;function resize(){dpr=1;W=innerWidth;H=innerHeight;c.width=W*dpr;c.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.imageSmoothingEnabled=false}addEventListener('resize',resize);resize();
 const factions=[{name:'정파',color:'#38bdf8',enemy:[1,2],weapon:'태극·매화·금강·항룡'},{name:'사파',color:'#f43f5e',enemy:[0,2],weapon:'혈도·독공·귀영·녹림'},{name:'마교',color:'#c084fc',enemy:[0,1],weapon:'천마·혈마·귀마·흑염'}];let selected=0,subSect=0,mode='menu',state=null,keys={},pointer=null,last=0,ambient=0;
 let names=['태극검법','매화검법','양의검법','대력금강장','금강불괴신공','무당제운종','자하신공','항룡십팔장','나한권','항마곤법','타구봉법','태극권'];
@@ -203,7 +203,7 @@ function damage(e,n,direction,kind='sword'){
     }
   }
 }
-function update(dt){let s=state,p=s.p,v=movement();if(v.x||v.y)s.facing=v;s.time+=dt;let wave=Math.floor(s.time/60);if(wave>s.wave){s.wave=wave;for(let i=0;i<14;i++)if(s.enemies.length<battle().cap)spawn();showNotice(['','추격대와 장창병이 합류합니다','중갑방패병·정예 무인 출현','술사와 역사 포위망이 좁혀집니다','장로 출현 · 제한 시간 안에 처치'][Math.min(4,wave)])}s.shake=Math.max(0,s.shake-dt);s.hitFlash=Math.max(0,s.hitFlash-dt);s.dash-=dt;s.inv-=dt;const moveSpd=165+s.skills[5]*15+(s.fusions?.[5]?22:0)+(selected===1?12+(subSect===2?8:0):0);p.x+=v.x*moveSpd*dt;p.y+=v.y*moveSpd*dt;keepInArena(p);s.spawn-=dt;if(s.spawn<=0){for(let i=0;i<battle().batch+Math.floor(s.time/36);i++)if(s.enemies.length<battle().cap)spawn();s.spawn=Math.max(.11,battle().interval-s.time/1500)}if(s.time>=110&&!s.miniboss){s.miniboss=true;summonBoss(false)}if(s.time>=240&&!s.boss){s.boss=true;summonBoss(true)}if(s.demo&&s.time>=45){end(false);return}if(s.time>=300){end(!s.boss||!!s.bossDead);return}
+function update(dt){let s=state,p=s.p,v=movement();s.moving=!!(v.x||v.y);if(s.moving){s.facing=v;s.walkTime=(s.walkTime||0)+dt;if(v.x)s.face=v.x<0?-1:1}s.time+=dt;let wave=Math.floor(s.time/60);if(wave>s.wave){s.wave=wave;for(let i=0;i<14;i++)if(s.enemies.length<battle().cap)spawn();showNotice(['','추격대와 장창병이 합류합니다','중갑방패병·정예 무인 출현','술사와 역사 포위망이 좁혀집니다','장로 출현 · 제한 시간 안에 처치'][Math.min(4,wave)])}s.shake=Math.max(0,s.shake-dt);s.hitFlash=Math.max(0,s.hitFlash-dt);s.dash-=dt;s.inv-=dt;const moveSpd=165+s.skills[5]*15+(s.fusions?.[5]?22:0)+(selected===1?12+(subSect===2?8:0):0);p.x+=v.x*moveSpd*dt;p.y+=v.y*moveSpd*dt;keepInArena(p);s.spawn-=dt;if(s.spawn<=0){for(let i=0;i<battle().batch+Math.floor(s.time/36);i++)if(s.enemies.length<battle().cap)spawn();s.spawn=Math.max(.11,battle().interval-s.time/1500)}if(s.time>=110&&!s.miniboss){s.miniboss=true;summonBoss(false)}if(s.time>=240&&!s.boss){s.boss=true;summonBoss(true)}if(s.demo&&s.time>=45){end(false);return}if(s.time>=300){end(!s.boss||!!s.bossDead);return}
 updateSiege(s,dt);updateFeedback(s,dt);VFX.update(s,dt);runAttacks(s,dt);
 const ringLv=s.skills[2],fused0=!!s.fusions?.[0],ringCount=fused0?8:Math.min(6,ringLv+1),ringR=64+ringLv*5+(fused0?18:0),ringSpd=(fused0?3.4:2.3)+ringLv*.22;
 const armorReduction=(s.fusions?.[4]?.75:1)*(selected===0&&subSect===0?.85:1);
@@ -240,7 +240,7 @@ function format(t){return String(Math.floor(t/60)).padStart(2,'0')+':'+String(Ma
 function rect(x,y,w,h,col){ctx.fillStyle=col;ctx.fillRect(Math.round(x),Math.round(y),w,h)}
 function sprite(x,y,f,hero=false,boss=false,hit=false){
   if(typeof WuxiaSprites!=='undefined'){
-    if(hero)WuxiaSprites.drawHero(ctx,x,y,f,ambient,state?.swing||0,subSect);
+    if(hero)WuxiaSprites.drawHero(ctx,x,y,f,ambient,state?.swing||0,subSect,{moving:state?.moving||false,clock:state?.walkTime||0,face:state?.face||1});
     else WuxiaSprites.drawEnemy(ctx,{x,y,f,boss,hit:hit?1:0,role:boss?'boss':'disciple'},ambient);
     return;
   }

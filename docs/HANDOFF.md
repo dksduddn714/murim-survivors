@@ -19,3 +19,6 @@ merchant.js에 출현/상품/거래 로직. 현재 레벨 미사용 XP 전부로
 
 ## v1.3 아트
 C 스타일 아군/적 렌더러 적용 완료. vendor/wuxia-sprites.js의 frame 빌더와 캐시 사용. characters.html에서 36개 캐릭터(12아군+24적) 비교. C 이미지의 스타일을 코드 도트로 재구성한 것으로 이미지 자체를 잘라 붙인 것이 아님. 적 방어 패턴 추가는 별도 남음.
+
+## v1.4
+스프라이트 frame(f,role,sub,locomotionFrame,hit,attack)로 공격/보행 독립. state.walkTime 및 enemy.animTime 실제 이동 시 누적. 움직이지 않으면 frame0. VFX.eventArt/projectile에서 형태별 표현. 게임 판정 변경 없음.

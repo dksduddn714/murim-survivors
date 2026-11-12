@@ -83,3 +83,17 @@ test('C sprite catalogue covers all factions and roles with cached pixel frames'
  assert.ok(h.run('WuxiaSprites.cachedFrames')<300);
  h.run('start();for(const role of WuxiaSprites.roles)deathFeedback({x:0,y:0,f:1,role,boss:role==="boss"});drawCorpses(state)');
 });
+test('locomotion has four phases, idles still, and remains independent of attack',()=>{
+ const h=harness();assert.equal(h.run('WuxiaSprites.animationFrame(5,false)'),0);
+ const phases=[0,.1,.2,.3].map(t=>h.run(`WuxiaSprites.animationFrame(${t},true)`));assert.equal(new Set(phases).size,4);
+ h.run('start();state.inv=999;keys.d=true;update(.05)');const clock=h.run('state.walkTime');assert.ok(clock>0);assert.equal(h.run('state.moving'),true);
+ h.run('keys={};update(.05)');assert.equal(h.run('state.moving'),false);assert.equal(h.run('state.walkTime'),clock);
+ h.run('keys.a=true;update(.05)');assert.equal(h.run('state.face'),-1);
+ assert.notEqual(h.run('WuxiaSprites.frame(0,"hero",1,1,false,true)'),h.run('WuxiaSprites.frame(0,"hero",1,3,false,true)'));
+ h.run('state.enemies=[{x:300,y:200,f:0,role:"spearman",speed:80,fire:99,hp:999,max:999}];updateEnemy(state.enemies[0],state,.1)');assert.equal(h.run('state.enemies[0].moving'),true);assert.ok(h.run('state.enemies[0].animTime')>0);
+});
+test('redesigned skill silhouettes render every cast and projectile family',()=>{
+ const h=harness();h.run('start()');
+ for(const type of ['slash','throw','meteor','buddha','stomp','ice','blood_burst','poison','dragon_strike','lightning','chain','shadow_clone'])h.run(`VFX.cast('${type}',0,0,{tx:80,ty:20,r:80});VFX.update(state,.1);VFX.front(state)`);
+ for(const style of ['dragon_wave','black_dragon','arhat','plum','wraith','dharma_wheel','venom_wave','shadow_dagger','blood_spear','emerald_staff','taiji','blood_blade','cleaver_wave','demonic_slash'])h.run(`VFX.projectile({x:0,y:0,vx:100,vy:0,style:'${style}',type:'sword'},state)`);
+});

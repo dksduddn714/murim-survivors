@@ -1,5 +1,6 @@
 'use strict';
 function updateEnemy(e,s,dt){
+  e.moving=false;e.attackPose=Math.max(0,(e.attackPose||0)-dt);const oldX=e.x,oldY=e.y;
   if(e.knockX||e.knockY){e.x+=(e.knockX||0)*dt;e.y+=(e.knockY||0)*dt;const decay=Math.exp(-15*dt);e.knockX*=decay;e.knockY*=decay}
   if(e.poisoned>0)e.poisoned=Math.max(0,e.poisoned-dt);
   if(e.chilled>0)e.chilled=Math.max(0,e.chilled-dt);
@@ -27,9 +28,10 @@ function updateEnemy(e,s,dt){
     else if(e.fire<=0&&distance<320){e.charge=1.15;e.chargeAngle=angle;e.fire=e.elite?2.4:3.4;speed=0}
   }
   e.x+=Math.cos(direction)*speed*dt;e.y+=Math.sin(direction)*speed*dt;
+  e.moving=Math.hypot(e.x-oldX,e.y-oldY)>.01;if(e.moving){e.animTime=(e.animTime||0)+dt;if(Math.abs(e.x-oldX)>.01)e.face=e.x<oldX?-1:1}
   e.aiming=!isCharger&&e.fire>0&&e.fire<=.35&&distance<400?e.fire:0;
   if(!isCharger&&e.fire<=0&&distance<400&&s.hostile.length<200){
-    e.fire=e.boss?1.15:e.role==='sorcerer'?1.9:e.elite?1.7:3.1;
+    e.attackPose=.22;e.fire=e.boss?1.15:e.role==='sorcerer'?1.9:e.elite?1.7:3.1;
     const count=e.boss?5:e.elite?3:e.role==='sorcerer'?2:1;
     for(let j=0;j<count;j++){const aim=Math.atan2(p.y+(s.facing?.y||0)*55-e.y,p.x+(s.facing?.x||0)*55-e.x);const a=aim+(j-(count-1)/2)*.2;s.hostile.push({x:e.x,y:e.y,vx:Math.cos(a)*(e.f===1?145:115),vy:Math.sin(a)*(e.f===1?145:115),t:3,f:e.f})}
   }
