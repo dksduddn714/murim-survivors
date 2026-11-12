@@ -4,7 +4,7 @@ function harness(saved){
   const nodes=new Map(),store=new Map(saved?Object.entries(saved):[]);let clock=0;
   function element(){let html='';return {children:[],dataset:{},style:{setProperty(){}},classList:{toggle(){},add(){},remove(){}},hidden:false,textContent:'',get innerHTML(){return html},set innerHTML(v){html=v;this.children=[]},append(e){this.children.push(e)},querySelector(){return null},querySelectorAll(){return []},insertAdjacentHTML(){},setAttribute(){},addEventListener(){},setPointerCapture(){},getContext(){return new Proxy({},{get:()=>()=>({})})}}}
   const sandbox={console,Math,Date,Set,Map,JSON,Number,Object,performance:{now:()=>clock},innerWidth:960,innerHeight:540,devicePixelRatio:1,addEventListener(){},setTimeout(){return 1},clearTimeout(){},setInterval(){},navigator:{},window:{},screen:{},document:{hidden:false,body:{dataset:{}},querySelector(s){if(!nodes.has(s))nodes.set(s,element());return nodes.get(s)},querySelectorAll(){return []},createElement:element,addEventListener(){}},localStorage:{getItem(k){return store.get(k)||null},setItem(k,v){store.set(k,v)}}};
-  vm.createContext(sandbox);for(const file of ['vendor/proton.min','vendor/wuxia-ui-pack','vendor/wuxia-sprites','profile','sound','world','bosses','enemies','combat','feedback','siege','vfx','game','camp','controls','arsenal','app'])vm.runInContext(fs.readFileSync(path.join(root,'dist',file+'.js'),'utf8'),sandbox,{filename:file+'.js'});
+  vm.createContext(sandbox);for(const file of ['vendor/proton.min','vendor/wuxia-ui-pack','vendor/wuxia-sprites','profile','sound','world','bosses','enemies','combat','feedback','siege','vfx','game','merchant','camp','controls','arsenal','app'])vm.runInContext(fs.readFileSync(path.join(root,'dist',file+'.js'),'utf8'),sandbox,{filename:file+'.js'});
   return {run:code=>vm.runInContext(code,sandbox),nodes,store,advance(ms){clock+=ms;vm.runInContext('tick()',sandbox)}}
 }
 test('all stages, factions, combat and rendering remain finite for a two-minute run',()=>{for(let f=0;f<3;f++){const h=harness();h.run(`selected=${f};stageId=${f};start();state.p.hp=state.p.max=1e8;`);for(let i=0;i<2400;i++)h.run("if(mode==='upgrade')$('#choices').children[0].onclick();if(mode==='play')update(.05)");assert.ok(h.run('state.time')>100);assert.ok(h.run('state.kills')>0);assert.ok(h.run('state.enemies.every(e=>e.f!==selected)'));assert.ok(h.run('Number.isFinite(state.p.x)&&Number.isFinite(state.p.hp)'));h.run('render()')}});
@@ -38,4 +38,26 @@ test('36 unique skills, 36 unique SVG icons, ranged Demonic Cult offense, and 12
       assert.ok(h.run('state.enemies[1].hp')<300);
     }
   }
+});
+test('merchant spawns in world, keeps four offers, freezes combat and consumes current XP once',()=>{
+ const h=harness();h.run('start();state.time=65;updateMerchant(state,.1)');
+ assert.equal(h.run('state.merchant.offers.length'),4);
+ h.run('state.p.x=state.merchant.x;state.p.y=state.merchant.y;state.xp=9;state.gems=[{x:999,y:999,value:3}];state.merchant.offers[0]={kind:"sword",name:"청강검"};openMerchant()');
+ assert.equal(h.run('mode'),'shop');const t=h.run('state.time');h.advance(100);assert.equal(h.run('state.time'),t);
+ const level=h.run('state.level'),need=h.run('state.need');assert.equal(h.run('buyMerchant(0)'),true);
+ assert.equal(h.run('state.xp'),0);assert.equal(h.run('state.level'),level);assert.equal(h.run('state.need'),need);
+ assert.equal(h.run('state.gear.sword'),.18);assert.equal(h.run('state.gems.length'),1);assert.equal(h.run('buyMerchant(0)'),false);
+ h.run('openMerchant()');assert.equal(h.run('mode'),'play');
+});
+test('merchant rejects zero XP, supports leave and return, potion and skill cap',()=>{
+ const h=harness();h.run('start();state.time=70;updateMerchant(state,.1);state.p.x=state.merchant.x;state.p.y=state.merchant.y;openMerchant()');
+ assert.equal(h.run('buyMerchant(0)'),false);h.run('closeMerchant();state.xp=5;openMerchant()');assert.equal(h.run('mode'),'shop');
+ h.run('closeMerchant();state.skills.fill(5)');assert.equal(h.run('merchantOffers(state).every(o=>o.kind!=="skill")'),true);
+ h.run('state.merchant.offers[0]={kind:"potion",name:"약"};state.p.hp=1;openMerchant();buyMerchant(0)');assert.equal(h.run('state.p.hp'),46);
+});
+test('magnet marks only existing gems and player contact damage does not block movement',()=>{
+ const h=harness();h.run('start();state.gems=[{x:700,y:0,value:3}];collectExperience(state);state.gems.push({x:700,y:20,value:2})');
+ assert.equal(h.run('state.gems[0].magnet'),true);assert.equal(h.run('!!state.gems[1].magnet'),false);
+ h.run('state.enemies=[{x:0,y:0,hp:99999,max:99999,f:1,speed:0,fire:999,charge:0}];state.skills.fill(0);keys.d=true;update(.01)');
+ assert.ok(h.run('state.inv')>0);const x=h.run('state.p.x'),hp=h.run('state.p.hp');h.run('update(.01)');assert.ok(h.run('state.p.x')>x);assert.equal(h.run('state.p.hp'),hp);
 });
