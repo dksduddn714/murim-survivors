@@ -2,9 +2,18 @@
 // Original pixel item atlas, cached once. Generated peddler illustration is a separate asset.
 const ItemArt=(()=>{
  const cache=new Map();
- function frame(kind){if(cache.has(kind))return cache.get(kind);const cv=document.createElement('canvas');cv.width=cv.height=32;const g=cv.getContext('2d'),r=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(x,y,w,h)},O='#28303d',G='#e5c47c';
+ function frame(kind){if(kind==='potion')kind='heal';if(cache.has(kind))return cache.get(kind);const cv=document.createElement('canvas');cv.width=cv.height=32;const g=cv.getContext('2d'),r=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(x,y,w,h)},O='#28303d',G='#e5c47c';
+ if(kind==='heal'&&medicineImage?.complete&&medicineImage.naturalWidth){cv.width=cv.height=64;g.imageSmoothingEnabled=true;const h=64,w=h*medicineImage.naturalWidth/medicineImage.naturalHeight;g.drawImage(medicineImage,(64-w)/2,0,w,h);cache.set(kind,cv);return cv}
  const box=(x,y,w,h,c)=>{r(x-1,y-1,w+2,h+2,O);r(x,y,w,h,c)};
- if(kind==='heal'){box(11,7,10,4,'#a15b43');box(9,11,14,15,'#c87054');r(11,12,3,12,'#e39e76');box(10,16,12,6,'#f0ddac');r(14,16,4,6,'#a14542');r(12,18,8,2,'#a14542');r(12,5,8,2,G)}
+ if(kind==='heal'){
+  // Ceramic medicine gourd, red cloth stopper and pixel 金 label. No medical cross.
+  box(13,3,7,4,'#aa5541');r(11,4,11,2,'#df8c62');box(13,7,7,4,'#d4bf91');
+  box(10,10,13,7,'#6b9891');box(7,17,19,10,'#467b76');r(9,19,3,6,'#a1c6b1');r(11,11,3,4,'#c1d8ba');r(8,27,16,2,'#274b50');
+  r(12,16,9,10,'#ecdbac');r(16,17,2,2,'#936448');r(14,19,6,1,'#936448');r(13,21,8,1,'#936448');r(16,19,1,6,'#936448');r(14,23,5,1,'#936448');
+  r(20,6,5,2,'#bd6956');r(23,8,2,5,'#bd6956');r(25,10,2,3,'#e0a079');
+ }
+ else if(kind==='armor'){box(10,5,12,4,'#ccba91');box(7,9,18,17,'#5c7d8b');box(3,10,5,9,'#708f9b');box(25,10,4,9,'#708f9b');r(10,10,3,13,'#9eb7b7');r(13,9,6,3,'#d5c595');r(8,21,16,3,'#c0a778');r(15,12,2,10,'#364e68');r(11,26,5,3,'#314951');r(18,26,5,3,'#314951')}
+ else if(kind==='charm'){r(15,3,2,8,'#b47d61');r(10,5,12,2,'#b47d61');box(10,10,13,16,'#509387');r(12,12,3,11,'#94c6a7');r(16,14,4,7,'#d9c58e');r(10,26,13,2,'#325d58');r(14,28,2,3,'#d7ad6a');r(19,28,2,3,'#d7ad6a')}
  else if(kind==='qi'){box(10,8,12,4,'#9d7654');box(7,12,18,14,'#376c70');r(9,13,4,11,'#659c95');box(12,16,9,6,G);r(15,17,2,4,'#714b47');r(13,5,6,3,'#d3b280')}
  else if(kind==='gem'){box(13,8,6,3,'#e9d4a2');box(10,12,12,13,'#7dbcb0');r(12,13,4,10,'#bce2ca');r(10,14,12,2,G);r(15,18,2,4,'#346b67')}
  else if(kind==='magnet'){box(8,5,16,23,'#eed8a2');r(8,6,16,3,'#af6754');r(8,24,16,3,'#af6754');r(14,11,4,3,'#c04f4d');r(12,15,8,2,'#c04f4d');r(15,17,2,5,'#c04f4d');r(11,20,10,2,'#c04f4d')}
@@ -17,33 +26,35 @@ const ItemArt=(()=>{
  else{box(5,5,22,24,'#3f7475');r(7,7,3,20,'#b6c9b0');r(12,8,11,15,'#e8d9b1');r(15,11,5,2,'#a6754c');r(15,15,5,2,'#a6754c');r(15,19,4,2,'#a6754c')}
  cache.set(kind,cv);return cv}
  function draw(g,k,x,y,size=24){g.save();g.imageSmoothingEnabled=false;g.drawImage(frame(k),Math.round(x-size/2),Math.round(y-size*.8),size,size);g.restore()}
- function html(k){return '<img class="goods-icon" src="'+frame(k).toDataURL()+'" alt="'+({heal:'금창약',potion:'금창약',qi:'소환단',magnet:'흡성부',sword:'청강검',knife:'추혼도',silver:'은전',chest:'기연 궤짝'}[k]||'무공 비급')+'">'}
- return {frame,draw,html};
+ function html(k){return '<img class="goods-icon" src="'+frame(k).toDataURL()+'" alt="'+({heal:'금창약',potion:'금창약',qi:'소환단',magnet:'흡성부',sword:'청강검',knife:'추혼도',silver:'은전',chest:'기연 궤짝',armor:'무복',charm:'호부'}[k]||'무공 비급')+'">'}
+ return {frame,draw,html,clear:kind=>cache.delete(kind)};
 })();
+const medicineImage=typeof Image!=='undefined'?new Image():null;if(medicineImage){medicineImage.onload=()=>ItemArt.clear('heal');medicineImage.src='assets/medicine-gourd.png'}
 const peddlerImage=typeof Image!=='undefined'?new Image():null;if(peddlerImage)peddlerImage.src='assets/peddler.png';
 function initJianghu(s){
- s.treasures=[];s.hazards=[];s.props=[];s.recoverClock=20;s.cultivation=0;s.treasureSilver=0;
+ Equipment.init(s);s.treasures=[];s.hazards=[];s.props=[];s.recoverClock=20;s.cultivation=0;s.treasureSilver=0;
  // Fixed lanes keep hazards away from the starting point and make each arena learnable.
  for(let row=-2;row<=2;row++)for(let col=-3;col<=3;col++){if(Math.abs(col)+Math.abs(row)<2)continue;const n=(row+2)*7+col+3,type=stageId===0?(n%3===0?'herb':'barrel'):stageId===1?(n%3===0?'barrel':'stone'):(n%4===0?'stone':'barrel');s.props.push({x:col*285+(row%2)*55,y:row*245,type,hp:type==='barrel'?26:1,used:false,respawn:0})}
 }
 function dropTreasure(s,e){if(e.treasureDropped||!(e.boss||e.siegeLeader||e.elite))return;e.treasureDropped=true;
  const tier=e.final?3:e.boss||e.siegeLeader?2:1;
- if(s.treasures.length>=24){const chest=s.treasures[0];chest.tier=Math.min(3,chest.tier+1);return}
- s.treasures.push({x:e.x,y:e.y,tier,phase:Math.random()*6});VFX.burst(e.x,e.y-8,'#ffdf8a',12,80);
+ if(s.treasures.length>=24)return;
+ s.treasures.push({x:e.x,y:e.y,tier,item:Equipment.roll(s.time),foundAt:s.time,phase:Math.random()*6});VFX.burst(e.x,e.y-8,'#ffdf8a',12,80);
 }
 function openTreasure(s,chest){
  if(chest.opened||mode!=='play')return;chest.opened=true;mode='reward';pointer=null;keys={};$('#trade').hidden=true;$('#reroll').hidden=true;
- const available=s.skills.map((v,i)=>({v,i})).filter(o=>o.v>0&&o.v<5),count=chest.tier===3?3:chest.tier===2?2:1,rewards=[];
- if(available.length&&Math.random()<.7){for(let j=0;j<count;j++){const pool=available.filter(o=>s.skills[o.i]<5);if(!pool.length)break;const o=pool[Math.floor(Math.random()*pool.length)];s.skills[o.i]++;if(o.i===4){s.p.max+=25;s.p.hp=Math.min(s.p.max,s.p.hp+45)}rewards.push({name:names[o.i]+' '+s.skills[o.i]+'성',kind:'skill'})}syncSkills()}
- if(!rewards.length){const amount=chest.tier*60+Math.floor(s.level*3);s.treasureSilver+=amount;if(!s.demo){Profile.data.silver+=amount;Profile.save();updateProfile()}rewards.push({name:'은전 +'+amount+(s.demo?' (시연 · 저장 안 됨)':''),kind:'silver'})}
- $('#modal').hidden=false;$('#modalEyebrow').textContent='강호 기연 · 경험치 소모 없음';$('#modalTitle').textContent=['','뜻밖의 비급','선봉장의 유산','무림의 보물'][chest.tier];$('#choices').classList.remove('merchant-choices');$('#choices').innerHTML=rewards.map(o=>'<div class="treasure-reward">'+ItemArt.html(o.kind)+'<strong>'+o.name+'</strong></div>').join('');$('#again').hidden=true;$('#retry').hidden=true;$('#resume').hidden=false;$('#resume').textContent='기연을 받고 계속하기';$('#resume').onclick=closeTreasure;Sound.play('level');VFX.cast('evolution',s.p.x,s.p.y,{r:110,color:'#ffe0a0'});
+ const item=chest.item||Equipment.roll(chest.foundAt??s.time);s.pendingEquipment=item;const old=s.equipment[item.slot],g=Equipment.grades[item.rank],canEquip=!old||item.rank>old.rank;
+ $('#modal').hidden=false;$('#modalEyebrow').textContent='강호 기연 · 장비 1개 · 무공 즉시 강화 없음';$('#modalTitle').textContent=g.name+' '+Equipment.name(item);$('#choices').classList.remove('merchant-choices');$('#choices').innerHTML='<div class="gear-compare"><div><small>발견한 장비</small>'+Equipment.card(item)+'</div><div><small>현재 착용</small>'+Equipment.card(old)+'</div></div><p class="gear-note">'+format(item.foundAt)+' 처치 보상 · 이번 출도에만 적용 · 부위별 하나만 착용</p>';
+ const equipButton=document.createElement('button');equipButton.className='equip-action';equipButton.disabled=!canEquip;equipButton.textContent=canEquip?'착용하기 · '+Equipment.text(item):'현재 장비가 같거나 더 좋습니다';equipButton.onclick=()=>Equipment.decide(true);$('#choices').append(equipButton);
+ $('#again').hidden=true;$('#retry').hidden=true;$('#resume').hidden=false;$('#resume').textContent='분해하여 은전 +'+g.salvage;$('#resume').onclick=()=>Equipment.decide(false);Sound.play('pickup');
 }
-function closeTreasure(){if(mode!=='reward')return;mode='play';$('#modal').hidden=true;$('#resume').textContent='계속하기';$('#resume').onclick=pause;state.inv=Math.max(state.inv,.8);previousTick=performance.now()}
-function hurtFromHazard(s,n){if(s.inv>0||mode!=='play')return;if(!SectSystem.block(s))s.p.hp-=n;s.inv=.7;s.hitFlash=.15;Sound.play('hurt');if(s.p.hp<=0)end(false)}
+
+function closeTreasure(){if(mode!=='reward')return;state.pendingEquipment=null;mode='play';$('#modal').hidden=true;$('#resume').textContent='계속하기';$('#resume').onclick=pause;state.inv=Math.max(state.inv,.8);previousTick=performance.now()}
+function hurtFromHazard(s,n){if(s.inv>0||mode!=='play')return;if(!SectSystem.block(s))s.p.hp-=Math.max(1,n*(1-Equipment.bonus(s,'armor')));s.inv=.7;s.hitFlash=.15;Sound.play('hurt');if(s.p.hp<=0)end(false)}
 function addHazard(s,h){if(s.hazards.length<36)s.hazards.push({...h,age:0,hit:false})}
 function updateJianghu(s,dt){
  s.recoverClock-=dt;if(s.recoverClock<=0){s.recoverClock=20;s.p.hp=Math.min(s.p.max,s.p.hp+Profile.data.training.recovery)}
- s.cultivation=Math.max(0,s.cultivation-dt);if(s.cultivation>0&&s.cooldowns)for(const k of Object.keys(s.cooldowns))s.cooldowns[k]=Math.max(0,s.cooldowns[k]-dt*.25);
+ s.cultivation=Math.max(0,s.cultivation-dt);if(s.sect&&Equipment.bonus(s,'cycle')>0)s.sect.cooldown=Math.max(0,s.sect.cooldown-dt*Equipment.bonus(s,'cycle')/(1-Equipment.bonus(s,'cycle')));if(Equipment.bonus(s,'cycle')>0&&s.cooldowns)for(const k of Object.keys(s.cooldowns))s.cooldowns[k]=Math.max(0,s.cooldowns[k]-dt*Equipment.bonus(s,'cycle')/(1-Equipment.bonus(s,'cycle')));if(s.cultivation>0&&s.cooldowns)for(const k of Object.keys(s.cooldowns))s.cooldowns[k]=Math.max(0,s.cooldowns[k]-dt*.25);
  for(const o of s.props){if(o.used){o.respawn-=dt;if(o.type!=='barrel'&&o.respawn<=0)o.used=false;continue}if(o.type!=='barrel'&&Math.hypot(o.x-s.p.x,o.y-s.p.y)<30){o.used=true;o.respawn=30;s.cultivation=8;if(o.type==='herb')s.p.hp=Math.min(s.p.max,s.p.hp+12);showNotice(o.type==='herb'?'영초 · 체력 +12 · 8초간 무공 회복 +25%':'오도비 · 8초간 무공 회복 +25%')}}
  for(const h of s.hazards){h.age+=dt;if(h.age<h.delay)continue;const x=s.p.x,y=s.p.y,hit=h.type==='cross'?(Math.abs(x-h.x)<h.width/2&&Math.abs(y-h.y)<h.r||Math.abs(y-h.y)<h.width/2&&Math.abs(x-h.x)<h.r):h.type==='ambush'?segmentDistance(x,y,h.x,h.y,h.tx,h.ty)<h.width/2:Math.hypot(x-h.x,y-h.y)<h.r;
   if(hit)hurtFromHazard(s,h.damage);if(h.age>=h.delay+h.life)h.dead=true;
@@ -64,4 +75,4 @@ function drawJianghu(s){
  }if(s.cultivation>0){ctx.save();ctx.strokeStyle='#a3d9c0';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(s.p.x,s.p.y+3,18,8,0,0,7);ctx.stroke();ctx.restore()}
 }
 function renderReroll(s){const b=$('#reroll');b.hidden=!s.rerolls;b.textContent='비급 재추첨 · '+s.rerolls+'회';b.onclick=()=>{if(mode!=='upgrade'||s.rerolls<=0)return;s.rerolls--;upgrade(true)}}
-addEventListener('keydown',e=>{if(mode==='reward'&&(e.key==='Enter'||e.key===' '||e.key==='Escape')){e.preventDefault();closeTreasure()}});
+addEventListener('keydown',e=>{if(mode==='reward'&&(e.key==='Enter'||e.key===' '||e.key==='Escape')){e.preventDefault();Equipment.decide(false)}});

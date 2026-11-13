@@ -40,3 +40,5 @@ Exact source paths and Git blob hashes: `dist/samples/sources.json`. CC0 text an
 ## v1.9 original assets
 
 `dist/assets/peddler.png`: generated specifically for this project with OpenAI image generation; not a third-party downloaded sprite pack. Prompt: friendly chibi traveling wuxia bundle peddler, straw hat, teal patched tunic, indigo bundle, scrolls and medicine gourd, transparent pixel-art sprite. Used as a static in-world character with a small idle bob. ItemArt in `jianghu.js` is original code-drawn pixel artwork. Procedural BGM in `sound.js` uses local oscillator synthesis and no sampled or licensed recording.
+
+`dist/assets/medicine-gourd.png` (v1.10): newly generated for this project with OpenAI image generation. Prompt: single traditional jade ceramic double-lobed medicine gourd, red cloth stopper and gold cord, transparent chunky pixel-art inventory icon, no medical cross. Used as the heal pickup and shop icon. Not an externally downloaded asset.

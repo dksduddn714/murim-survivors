@@ -2,8 +2,7 @@
 // Encounter-local inventory; only the current level's unspent experience is currency.
 function merchantOffers(s){
   const pool=[
-    {name:'청강검',text:'이번 출도 검기 피해 +'+(18*(1+Profile.data.training.destiny*.05)).toFixed(1)+'%',kind:'sword'},
-    {name:'추혼도',text:'이번 출도 비도 피해 +'+(18*(1+Profile.data.training.destiny*.05)).toFixed(1)+'%',kind:'knife'},
+    ...Equipment.slots.map(slot=>{const item=Equipment.roll(s.time);item.slot=slot;item.name=Equipment.name(item);return {name:Equipment.grades[item.rank].name+' '+item.name,text:Equipment.text(item)+' · 기존 장비와 교체',kind:'equipment',item}}),
     {name:'금창약',text:'체력 '+Math.round(45*(1+Profile.data.training.destiny*.05))+' 회복 · 최대 체력 +10',kind:'potion'},
     {name:'소환단',text:'현재 내공 +8 · 구매 후 돌파에 사용',kind:'qi'},
     {name:'흡성부',text:'현재 바닥의 경험치를 전부 회수',kind:'magnet'},
@@ -33,8 +32,8 @@ function openMerchant(){
   $('#modalTitle').textContent='현재 경험치 '+Math.floor(s.xp)+' / '+s.need+' 전부로 하나 구매';
   $('#choices').innerHTML='';$('#choices').classList.add('merchant-choices');
   m.offers.forEach((o,i)=>{
-    const b=document.createElement('button');b.disabled=!(s.xp>0);
-    b.innerHTML=ItemArt.html(o.kind==='potion'?'heal':o.kind)+'<small>상품 '+(i+1)+'</small><strong>'+o.name+'</strong><small>'+o.text+'</small><small>대가: 현재 경험치 전부 · 레벨 유지</small>';
+    const b=document.createElement('button');if(o.kind==='equipment')b.style.borderColor=Equipment.grades[o.item.rank].color;b.disabled=!(s.xp>0)||(o.kind==='equipment'&&s.equipment[o.item.slot]&&s.equipment[o.item.slot].rank>=o.item.rank);
+    b.innerHTML=ItemArt.html(o.kind==='equipment'?Equipment.art(o.item):o.kind==='potion'?'heal':o.kind)+'<small>상품 '+(i+1)+'</small><strong>'+o.name+'</strong><small>'+o.text+'</small><small>대가: 현재 경험치 전부 · 레벨 유지</small>';
     b.onclick=()=>buyMerchant(i);$('#choices').append(b);
   });
   $('#again').hidden=true;$('#retry').hidden=true;$('#resume').hidden=false;
@@ -46,8 +45,8 @@ function buyMerchant(index){
   const s=state,m=s?.merchant,o=m?.offers[index];
   if(mode!=='shop'||!m||m.bought||!o||!(s.xp>0))return false;
   // Commit once before effects; queued clicks cannot buy again.
+  if(o.kind==='equipment'&&!Equipment.equip(s,o.item))return false;
   m.bought=true;s.xp=0;
-  if(o.kind==='sword'||o.kind==='knife'){s.gear??={sword:0,knife:0};s.gear[o.kind]=(s.gear[o.kind]||0)+.18*(1+Profile.data.training.destiny*.05)}
   if(o.kind==='potion'){s.p.max+=10;s.p.hp=Math.min(s.p.max,s.p.hp+45*(1+Profile.data.training.destiny*.05))}
   if(o.kind==='qi')s.xp+=8;
   if(o.kind==='magnet')collectExperience(s);

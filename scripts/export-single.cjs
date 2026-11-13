@@ -8,6 +8,7 @@ html=html.replace(/<link rel="stylesheet" href="([^"?]+)[^"]*">/g,(_,file)=>'<st
 html=html.replace(/<script src="([^"?]+)[^"]*"><\/script>/g,(_,file)=>{
  let code=fs.readFileSync(path.join(dist,file),'utf8');
  if(file==='app.js')code=code.replace(/if\('serviceWorker' in navigator&&location.protocol==='https:'\)addEventListener\('load',\(\)=>navigator.serviceWorker.register\('\.\/sw.js'\).catch\(\(\)=>\{\}\)\);/,'');
+ if(file==='jianghu.js')code=code.replace("medicineImage.src='assets/medicine-gourd.png'", "medicineImage.src='data:image/png;base64,"+fs.readFileSync(path.join(dist,'assets/medicine-gourd.png')).toString('base64')+"'");
  if(file==='jianghu.js')code=code.replace("peddlerImage.src='assets/peddler.png'", "peddlerImage.src='data:image/png;base64,"+fs.readFileSync(path.join(dist,'assets/peddler.png')).toString('base64')+"'");
  return '<script>\n'+code.replace(/<\/script/gi,'<\\/script')+'\n</script>';
 });

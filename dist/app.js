@@ -8,3 +8,5 @@ if('serviceWorker' in navigator&&location.protocol==='https:')addEventListener('
 $('#bgmQuick').onclick=Music.toggle;Music.paint();
 
 $('#bgmHud').onclick=Music.toggle;
+
+$('#postTraining').onclick=()=>{if(mode==='end'&&!state.demo)openCamp('training')};

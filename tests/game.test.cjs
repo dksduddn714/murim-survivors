@@ -4,7 +4,7 @@ function harness(saved){
   const nodes=new Map(),store=new Map(saved?Object.entries(saved):[]);let clock=0;
   function element(){let html='';return {children:[],dataset:{},style:{setProperty(){}},classList:{toggle(){},add(){},remove(){}},hidden:false,textContent:'',get innerHTML(){return html},set innerHTML(v){html=v;this.children=[]},append(e){this.children.push(e)},querySelector(){return null},querySelectorAll(){return []},insertAdjacentHTML(){},setAttribute(){},addEventListener(){},setPointerCapture(){},toDataURL(){return 'data:image/png;base64,'},getContext(){return new Proxy({},{get:()=>()=>({})})}}}
   const sandbox={console,Math,Date,Set,Map,JSON,Number,Object,performance:{now:()=>clock},innerWidth:960,innerHeight:540,devicePixelRatio:1,addEventListener(){},setTimeout(){return 1},clearTimeout(){},setInterval(){},requestAnimationFrame(){},navigator:{},window:{},screen:{},document:{hidden:false,body:{dataset:{}},querySelector(s){if(!nodes.has(s))nodes.set(s,element());return nodes.get(s)},querySelectorAll(){return []},createElement:element,addEventListener(){}},localStorage:{getItem(k){return store.get(k)||null},setItem(k,v){store.set(k,v)}}};
-  vm.createContext(sandbox);for(const file of ['vendor/proton.min','vendor/wuxia-ui-pack','vendor/wuxia-sprites','profile','sound','world','bosses','enemies','sect','trajectories','combat','feedback','siege','vfx','arena','jianghu','game','merchant','camp','controls','arsenal','app'])vm.runInContext(fs.readFileSync(path.join(root,'dist',file+'.js'),'utf8'),sandbox,{filename:file+'.js'});
+  vm.createContext(sandbox);for(const file of ['vendor/proton.min','vendor/wuxia-ui-pack','vendor/wuxia-sprites','profile','sound','world','bosses','enemies','sect','trajectories','combat','feedback','siege','vfx','arena','equipment','jianghu','game','merchant','camp','controls','arsenal','app'])vm.runInContext(fs.readFileSync(path.join(root,'dist',file+'.js'),'utf8'),sandbox,{filename:file+'.js'});
   return {run:code=>vm.runInContext(code,sandbox),nodes,store,advance(ms){clock+=ms;vm.runInContext('tick(performance.now())',sandbox)}}
 }
 test('all stages, factions, combat and rendering remain finite for a two-minute run',()=>{for(let f=0;f<3;f++){const h=harness();h.run(`selected=${f};stageId=${f};start();state.p.hp=state.p.max=1e8;`);for(let i=0;i<2400;i++)h.run("if(mode==='reward')closeTreasure();if(mode==='upgrade')$('#choices').children[0].onclick();if(mode==='reward')closeTreasure();if(mode==='play')update(.05)");assert.ok(h.run('state.time')>100);assert.ok(h.run('state.kills')>0);assert.ok(h.run('state.enemies.every(e=>e.f!==selected)'));assert.ok(h.run('Number.isFinite(state.p.x)&&Number.isFinite(state.p.hp)'));h.run('render()')}});
@@ -42,11 +42,11 @@ test('36 unique skills, 36 unique SVG icons, ranged Demonic Cult offense, and 12
 test('merchant spawns in world, keeps four offers, freezes combat and consumes current XP once',()=>{
  const h=harness();h.run('start();state.time=65;updateMerchant(state,.1)');
  assert.equal(h.run('state.merchant.offers.length'),4);
- h.run('state.p.x=state.merchant.x;state.p.y=state.merchant.y;state.xp=9;state.gems=[{x:999,y:999,value:3}];state.merchant.offers[0]={kind:"sword",name:"청강검"};openMerchant()');
+ h.run('state.p.x=state.merchant.x;state.p.y=state.merchant.y;state.xp=9;state.gems=[{x:999,y:999,value:3}];state.merchant.offers[0]={kind:"equipment",name:"수련 철검",item:{slot:"weapon",rank:0,foundAt:65}};openMerchant()');
  assert.equal(h.run('mode'),'shop');const t=h.run('state.time');h.advance(100);assert.equal(h.run('state.time'),t);
  const level=h.run('state.level'),need=h.run('state.need');assert.equal(h.run('buyMerchant(0)'),true);
  assert.equal(h.run('state.xp'),0);assert.equal(h.run('state.level'),level);assert.equal(h.run('state.need'),need);
- assert.equal(h.run('state.gear.sword'),.18);assert.equal(h.run('state.gems.length'),1);assert.equal(h.run('buyMerchant(0)'),false);
+ assert.equal(h.run('Equipment.bonus(state,"attack")'),.04);assert.equal(h.run('state.gems.length'),1);assert.equal(h.run('buyMerchant(0)'),false);
  h.run('openMerchant()');assert.equal(h.run('mode'),'play');
 });
 test('merchant rejects zero XP, supports leave and return, potion and skill cap',()=>{
@@ -164,9 +164,9 @@ test('enemy attack depends on role rather than faction, without overlapping-body
 test('all twelve fresh sects start with one projectile and one melee target before growth',()=>{
  for(let f=0;f<3;f++)for(let sub=0;sub<4;sub++){const h=harness();h.run(`selected=${f};subSect=${sub};start();state.enemies=[{x:100,y:0,hp:1000,max:1000,f:(${f}+1)%3}];runAttacks(state,.01)`);assert.equal(h.run('(state.pendingShots?.length||0)+state.shots.length'),1,`${f}/${sub}`);assert.equal(h.run('primaryStats(state).targets'),1);assert.equal(h.run('state.shots.concat(state.pendingShots||[]).every(b=>b.remainingHits===1&&b.mode==="single")'),true);assert.equal(h.run('canUseSkill(state,WuxiaUI.SUB_SECTS[selected][subSect].startSkill)'),false)}
 });
-test('elite relics award once without XP charge, upgrade owned arts or persist silver',()=>{
- const h=harness();h.run('start();state.xp=7;const elite={x:0,y:0,elite:true};dropTreasure(state,elite);dropTreasure(state,elite)');assert.equal(h.run('state.treasures.length'),1);h.run('updateJianghu(state,.01)');assert.equal(h.run('mode'),'reward');assert.equal(h.run('state.xp'),7);const sum=h.run('state.skills.reduce((a,b)=>a+b,0)'),silver=h.run('Profile.data.silver');assert.ok(sum>1||silver>=60);h.run('closeTreasure();updateJianghu(state,.01)');assert.equal(h.run('state.skills.reduce((a,b)=>a+b,0)'),sum);assert.equal(h.run('Profile.data.silver'),silver);
- h.run('state.skills.fill(5);openTreasure(state,{tier:3,x:0,y:0})');assert.ok(h.run('Profile.data.silver')>=180);assert.equal(h.run('state.xp'),7);
+test('elite relics give one time-locked gear choice with no free skill levels or large silver payout',()=>{
+ const h=harness();h.run('start();state.xp=7;state.time=65;const elite={x:0,y:0,elite:true};dropTreasure(state,elite);dropTreasure(state,elite)');assert.equal(h.run('state.treasures.length'),1);assert.ok(h.run('state.treasures[0].item.rank')<=2);h.run('state.time=250;updateJianghu(state,.01)');assert.equal(h.run('mode'),'reward');assert.equal(h.run('state.pendingEquipment.foundAt'),65);assert.equal(h.run('state.xp'),7);assert.equal(h.run('state.skills.reduce((a,b)=>a+b,0)'),1);assert.equal(h.run('Profile.data.silver'),0);h.run('Equipment.decide(true)');assert.equal(h.run('mode'),'play');assert.equal(h.run('Object.values(state.equipment).filter(Boolean).length'),1);assert.equal(h.run('Equipment.decide(false)'),false);assert.equal(h.run('Profile.data.silver'),0);
+ h.run('openTreasure(state,{item:{slot:"armor",rank:0,foundAt:10}});Equipment.decide(false)');assert.equal(h.run('Profile.data.silver'),3);assert.equal(h.run('state.xp'),7);
 });
 test('boss factions create different telegraphed patterns, never instant damage',()=>{
  for(let f=0;f<3;f++){const h=harness();h.run(`start();state.enemies=[];state.inv=0;const b={x:90,y:0,f:${f},hp:100,max:100,phase:1,speed:30};bossPattern(b,state)`);assert.equal(h.run('state.hazards[0].type'),['cross','ambush','meteor'][f]);const hp=h.run('state.p.hp');h.run('updateJianghu(state,.5)');assert.equal(h.run('state.p.hp'),hp);h.run('updateJianghu(state,.65)');assert.ok(h.run('state.p.hp')<hp);h.run('drawJianghu(state)')}
@@ -183,4 +183,15 @@ test('training perks affect movement dash healing start ranks and rerolls withou
 });
 test('pentatonic music schedules bounded notes and fades while paused',()=>{
  const h=harness();h.run(`var starts=0,targets=[];const param={value:0,setValueAtTime(){},exponentialRampToValueAtTime(){},setTargetAtTime(v){targets.push(v)}};const node=()=>({gain:param,frequency:param,connect(){},start(){starts++},stop(){}});window.AudioContext=class{constructor(){this.state='running';this.currentTime=0;this.destination={}}createGain(){return node()}createOscillator(){return node()}resume(){return Promise.resolve()}};Music.toggle();Music.update(true,false)`);assert.ok(h.run('starts')>0);h.run('Music.update(false,false)');assert.equal(h.run('targets.at(-1)'),0);h.run('Music.toggle()');assert.equal(h.run('Profile.data.settings.bgm'),false);
+});
+
+test('five gear grades unlock by survival time and probabilities total one hundred',()=>{
+ const h=harness();for(const t of [0,59,60,119,120,179,180,239,240,999])assert.equal(h.run(`Equipment.weights(${t}).reduce((a,b)=>a+b,0)`),100);
+ assert.equal(h.run('Equipment.weights(0)[2]'),0);assert.equal(h.run('Equipment.weights(119)[3]'),0);assert.equal(h.run('Equipment.weights(179)[4]'),0);assert.equal(h.run('Equipment.roll(0,()=>.999).rank'),1);assert.equal(h.run('Equipment.roll(60,()=>.999).rank'),2);assert.equal(h.run('Equipment.roll(120,()=>.999).rank'),3);assert.equal(h.run('Equipment.roll(240,()=>.999).rank'),4);
+});
+test('equipment replaces rather than stacks and resets each run',()=>{
+ const h=harness();h.run('start();Equipment.equip(state,{slot:"weapon",rank:0});Equipment.equip(state,{slot:"weapon",rank:4})');assert.equal(h.run('Equipment.bonus(state,"attack")'),.19);assert.equal(h.run('Equipment.equip(state,{slot:"weapon",rank:3})'),false);assert.equal(h.run('Equipment.equip(state,{slot:"weapon",rank:99})'),false);h.run('const enemy={x:0,y:0,hp:1000,max:1000,f:1};damage(enemy,100,0)');assert.ok(Math.abs(h.run('enemy.hp')-881)<.01);h.run('start()');assert.equal(h.run('Equipment.bonus(state,"attack")'),0);
+});
+test('end screen offers affordable permanent training and returning keeps run payout idempotent',()=>{
+ const h=harness();h.run('start();state.kills=180;end(false)');assert.equal(h.nodes.get('#postTraining').hidden,false);assert.equal(h.nodes.get('#postTraining').disabled,false);const count=h.run('Profile.data.runs');h.run("$('#postTraining').onclick();Profile.buy('power');paintPostRunTraining();$('#campClose').onclick()");assert.equal(h.run('mode'),'end');assert.equal(h.run('Profile.data.training.power'),1);h.run('end(false)');assert.equal(h.run('Profile.data.runs'),count);h.run('start()');assert.equal(h.run('Profile.data.training.power'),1);
 });
