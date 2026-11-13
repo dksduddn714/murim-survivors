@@ -1,3 +1,4 @@
+
 :root{
   color-scheme:dark;
   --gold:#e5c158;
@@ -383,3 +384,13 @@ footer a{color:var(--gold);margin-left:8px;text-underline-offset:3px}
 .movehint{opacity:.45}
 .skilldock #buildHint{display:none}
 @media(max-height:500px){#pressure{display:none}#enemyCount{display:none}.movehint{display:none}#choices>button .recipe{display:none}#choices>button{padding:12px}.upgrade-delta{font-size:11px;padding:6px;margin:6px 0}#choices>button>small{font-size:10px}.battleclock{transform:scale(.9);transform-origin:top center}}
+
+
+/* Jianghu goods, relic rewards and a readable four-item storefront. */
+.goods-icon{display:block;width:64px;height:64px;image-rendering:pixelated;object-fit:contain;margin:0 auto 10px;background:radial-gradient(#d9b56b20,transparent 70%)}
+.merchant-choices>button{text-align:center;min-width:0}.merchant-choices>button strong{font-size:18px}.merchant-choices>button small{line-height:1.5}
+.treasure-reward{text-align:center;padding:20px 12px;border:1px solid #c5a96466;border-radius:10px;background:#b58c3e15}.treasure-reward strong{display:block;color:#ffe3a2}.treasure-reward .goods-icon{width:82px;height:82px}
+#reroll{border-color:#83c8ba;color:#bde3cf}#bgmQuick{white-space:nowrap}
+@media(max-height:500px){.goods-icon{width:40px;height:40px;margin-bottom:4px}.merchant-choices>button strong{font-size:14px}.treasure-reward{padding:10px}.treasure-reward .goods-icon{width:50px;height:50px}}
+
+.sect-seal{display:inline-block;margin-left:5px;padding:2px 4px;border:1px solid #e6c478;color:#ffde9c;background:#9e73292a;font-size:9px;transform:rotate(-8deg)}

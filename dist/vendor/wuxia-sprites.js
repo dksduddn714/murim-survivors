@@ -99,6 +99,9 @@ const WuxiaSprites=(()=>{
   if(cfg.hair==='hat'){poly([[hx-hw+2,hy-3],[hx+hw-4,hy-3],[hx+hw+1,hy+4],[hx+hw+7,hy+7],[hx-hw-7,hy+7],[hx-hw-1,hy+4]],O);poly([[hx-hw+4,hy-1],[hx+hw-6,hy-1],[hx+hw-2,hy+4],[hx-hw+1,hy+4]],'#9c825b');r(hx-hw-5,hy+5,dim.head+10,2,'#c5b184')}
   if(cfg.hair==='bandana'){r(hx-hw,hy+6,dim.head,3,cfg.accent);poly([[hx-hw,hy+7],[hx-hw-10,hy+11],[hx-hw-6,hy+14],[hx-hw-14,hy+18],[hx-hw-1,hy+14]],cfg.accent)}
   if(cfg.hair==='crown'){r(hx-hw,hy+3,dim.head,3,'#c7ae70');for(let j=0;j<3;j++){r(hx-10+j*9,hy-3-j%2*3,3,6+j%2*3,'#ecd39a')}r(hx-2,hy+2,3,4,'#a05f7b')}
+  if(hero&&f===0&&sub===2){orb(hx+5,hy-2,2,'#e58ca5');r(hx+5,hy-2,1,1,'#fff5d7')}
+  if(hero&&f===0&&sub===3){orb(left-2,hip-2,3,O);orb(left-2,hip-2,2,'#d3b467');r(left-3,hip-6,2,2,'#a34b3e')}
+  if(!hero&&role==='archer'){poly([[left-3,shoulder-4],[left+2,shoulder-6],[left+3,hip-4],[left-2,hip-2]],O);r(left-2,shoulder-7,2,4,'#eee0b7');r(left,shoulder-8,2,4,'#eee0b7')}
   if(role==='shield'&&f!==0){poly([[hx-hw-1,hy+12],[hx-hw-2,hy+3],[hx-8,hy-5],[hx+7,hy-5],[hx+hw+2,hy+3],[hx+hw+1,hy+12]],O);poly([[hx-hw,hy+6],[hx-7,hy-3],[hx+5,hy-3],[hx+hw,hy+6]],'#666c80');line(hx-4,hy-2,hx+6,hy+1,'#9b9ca9',2);r(hx-hw-1,hy+8,dim.head+2,3,'#a7a2a8');r(hx-hw-2,hy+11,5,15,'#52576b');r(hx+hw-3,hy+11,5,15,'#52576b')}
   if(cfg.body==='monk'){for(let j=0;j<7;j++){const a=j*Math.PI/6;orb(cx-12+4*j,shoulder+5+Math.round(Math.sin(a)*8),2,'#5a4437');r(cx-12+4*j,shoulder+4+Math.round(Math.sin(a)*8),1,1,'#e3bc7b')}}
   // Articulated front arm follows preparation, strike and recovery, not a binary pose.
@@ -117,7 +120,7 @@ const WuxiaSprites=(()=>{
   if(cache.size>=1024)cache.delete(cache.keys().next().value);cache.set(key,c);return c;
  }
  function paint(ctx,x,y,f,role,sub,t,attack,hit,scale,moving,face){const image=build(f,role,sub,animationFrame(t,moving),hit,attack);ctx.save();ctx.imageSmoothingEnabled=false;ctx.translate(Math.round(x),Math.round(y));if(face<0)ctx.scale(-1,1);if(hit){ctx.translate(-3,1);ctx.scale(1.08,.92)}else if(attack===3){ctx.translate(3,0);ctx.scale(1.04,.97)}else if(moving){ctx.rotate(Math.sin(t*10*Math.PI/4)*.025)}ctx.drawImage(image,-37*scale,-80*scale,96*scale,96*scale);ctx.restore()}
- function drawHero(ctx,x,y,f,t,swing=0,sub=0,motion=null){const portrait=ctx.canvas&&ctx.canvas.width<=64;const attack=motion?.attackPhase??(swing>0?3:0);paint(ctx,x,y,f,'hero',sub,motion?.clock??t,attack,false,portrait?.48:1,motion?.moving??false,motion?.face??1)}
- function drawEnemy(ctx,e,t){const pose=e.aiming>0?2:e.attackPose>.12?3:e.attackPose>.06?4:e.attackPose>0?5:e.charge>.45?2:e.charge>0?3:0;paint(ctx,e.x,e.y,e.f||0,e.boss?'boss':e.role||'disciple',e.look||0,e.animTime??t,pose,e.hit>0,e.boss?2:1,e.moving??false,e.face??1)}
+ function drawHero(ctx,x,y,f,t,swing=0,sub=0,motion=null){const portrait=ctx.canvas&&ctx.canvas.width<=64;const attack=motion?.attackPhase??(swing>0?3:0);paint(ctx,x,y,f,'hero',sub,motion?.clock??t,attack,false,portrait?.48:.52,motion?.moving??false,motion?.face??1)}
+ function drawEnemy(ctx,e,t){const pose=e.aiming>0?2:e.attackPose>.12?3:e.attackPose>.06?4:e.attackPose>0?5:e.charge>.45?2:e.charge>0?3:0;paint(ctx,e.x,e.y,e.f||0,e.boss?'boss':e.role||'disciple',e.look||0,e.animTime??t,pose,e.hit>0,e.boss?1.05:e.elite?.62:.52,e.moving??false,e.face??1)}
  return{drawHero,drawEnemy,animationFrame,attackFrame,heroNames,roles,frame:build,style:'C',cellSize:96,characterPixels:64,get cachedFrames(){return cache.size}};
 })();

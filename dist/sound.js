@@ -9,3 +9,16 @@ const Sound=(()=>{
  }catch{}}
  return{unlock,play};
 })();
+
+// Pentatonic plucked strings and drum pulses, synthesized locally. No external recordings.
+const Music=(()=>{
+ let ac=null,master=null,next=0,step=0,playing=false;
+ const scale=[0,2,5,7,9],melody=[0,2,3,2,1,0,4,3,2,1,3,4,2,1,0,0];
+ function unlock(){if(!Profile.data.settings.bgm)return;try{const C=window.AudioContext||window.webkitAudioContext;if(!C)return;if(!ac){ac=new C();master=ac.createGain();master.gain.value=0;master.connect(ac.destination)}if(ac.state==='suspended')ac.resume().catch(()=>{})}catch{}}
+ function pluck(at,midi,duration,vol){const hz=440*Math.pow(2,(midi-69)/12);for(let i=1;i<=3;i++){const o=ac.createOscillator(),g=ac.createGain();o.type='triangle';o.frequency.value=hz*i;g.gain.setValueAtTime(vol/(i*i),at);g.gain.exponentialRampToValueAtTime(.0001,at+duration);o.connect(g);g.connect(master);o.start(at);o.stop(at+duration+.03)}}
+ function drum(at,strong){const o=ac.createOscillator(),g=ac.createGain();o.frequency.setValueAtTime(strong?125:190,at);o.frequency.exponentialRampToValueAtTime(42,at+.16);g.gain.setValueAtTime(strong?.2:.065,at);g.gain.exponentialRampToValueAtTime(.0001,at+.2);o.connect(g);g.connect(master);o.start(at);o.stop(at+.22)}
+ function update(active,boss){if(!ac||ac.state!=='running')return;const on=!!active&&Profile.data.settings.bgm;if(on!==playing){playing=on;master.gain.setTargetAtTime(on?.24:0,ac.currentTime,.08);next=ac.currentTime+.04}if(!on)return;if(next<ac.currentTime-.2)next=ac.currentTime+.03;const beat=60/(boss?144:100)/2;let count=0;while(next<ac.currentTime+.13&&count++<4){const note=melody[step%melody.length],oct=step%8===7?12:0;pluck(next,50+scale[note]+oct,beat*1.8,.14);if(step%2===0)drum(next,step%8===0);if(step%8===0)pluck(next,38,beat*7,.1);step++;next+=beat}}
+ function toggle(){Profile.data.settings.bgm=!Profile.data.settings.bgm;Profile.save();unlock();paint();}
+ function paint(){const b=$('#bgmQuick');b.textContent='♫ BGM '+(Profile.data.settings.bgm?'켬':'끔');b.setAttribute('aria-label',Profile.data.settings.bgm?'배경음악 끄기':'배경음악 켜기');const h=$('#bgmHud');h.textContent=Profile.data.settings.bgm?'♫':'♪';h.setAttribute('aria-label',Profile.data.settings.bgm?'배경음악 끄기':'배경음악 켜기')}
+ return{unlock,update,toggle,paint};
+})();

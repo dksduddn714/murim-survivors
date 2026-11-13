@@ -21,7 +21,7 @@ const SectSystem=(()=>{
  function power(s){return 1+ensure(s).mastery[0]*.12}
  function cycle(s){return config().cd*(1-ensure(s).mastery[1]*.05)}
  function size(s){return 1+ensure(s).mastery[2]*.08}
- function candidates(s,x,y,r,limit=8){return s.enemies.filter(e=>!e.dead&&(e.x-x)**2+(e.y-y)**2<r*r).sort((a,b)=>(a.x-x)**2+(a.y-y)**2-((b.x-x)**2+(b.y-y)**2)).slice(0,limit)}
+ function candidates(s,x,y,r,limit=8){const list=typeof queryGridRadius==='function'?queryGridRadius(s,x,y,r):s.enemies.filter(e=>!e.dead&&(e.x-x)**2+(e.y-y)**2<r*r);return list.sort((a,b)=>(a.x-x)**2+(a.y-y)**2-((b.x-x)**2+(b.y-y)**2)).slice(0,limit)}
  function strike(s,x,y,r,n,type='stomp',limit=8){for(const e of candidates(s,x,y,r,limit))damage(e,n,Math.atan2(e.y-y,e.x-x),'signature');VFX.cast(type,x,y,{r,color:config().color})}
  function fx(s,type,x,y,tx=x,ty=y){const q=ensure(s);q.fx.push({type,x,y,tx,ty,t:.65,max:.65,color:config().color});if(q.fx.length>12)q.fx.shift()}
  function cast(s){const q=ensure(s),cfg=config(),p=s.p,near=candidates(s,p.x,p.y,520,8),e=near[0],form=q.mastery[2],r=size(s);if(!e&&cfg.type!=='ward')return false;

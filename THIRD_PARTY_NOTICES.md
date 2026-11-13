@@ -36,3 +36,7 @@ The files in `dist/samples/` are displayed only in `art-samples.html` to compare
 - Kenney: Tiny Dungeon tileset, redistribution giobi/sgravoquest-assets; CC0 per original https://kenney.nl/assets/tiny-dungeon
 
 Exact source paths and Git blob hashes: `dist/samples/sources.json`. CC0 text and source notes are bundled. No LPC or SpriteCook images are included.
+
+## v1.9 original assets
+
+`dist/assets/peddler.png`: generated specifically for this project with OpenAI image generation; not a third-party downloaded sprite pack. Prompt: friendly chibi traveling wuxia bundle peddler, straw hat, teal patched tunic, indigo bundle, scrolls and medicine gourd, transparent pixel-art sprite. Used as a static in-world character with a small idle bob. ItemArt in `jianghu.js` is original code-drawn pixel artwork. Procedural BGM in `sound.js` uses local oscillator synthesis and no sampled or licensed recording.

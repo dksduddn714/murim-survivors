@@ -31,3 +31,6 @@ sect.js: 12종 절초, 위력/순환/확장 심화각6, 완성 후 운기. traje
 
 
 v1.7: primaryStats / weaponGrowthUpgrade / drawWeaponArcs in combat.js; 3-level weapon growth, all arts accessible via alternate button. Role-based hostile fire, bounded spatial separation. No save schema changes. Original actor art remains; commercial quality not established.
+
+## v1.9 integration
+Gemini upload v1.8.6 was a standalone HTML. Its 21 script blocks were restored to the existing module layout. New `jianghu.js` owns cached ItemArt, terrain objects, telegraphed hazards, relic drop/reward modal, and rerolls; it must load after arena/combat and before game. Merchant image path must be included in offline export and SW. Reward mode is `reward`, paused independently of upgrades/shop. Profile schema remains 1 with seven training fields, seals[12], bgm setting. `canUseSkill` prevents the starter rank-one art firing on top of the primary. `scripts/export-single.cjs` creates the portable HTML. QA scenarios are temporary and not published. Do not repeat the imported README's 60fps claim without measurements.

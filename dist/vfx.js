@@ -2,7 +2,7 @@
 // Proton (MIT), pinned in vendor/. World-space particles share the game's camera.
 const VFX=(()=>{
   let engine=null,emitter=null,events=[],time=0;
-  function cap(){return Profile.data.settings.effects==='low'?230:680}
+  function cap(){const crowd=(typeof state!=='undefined'&&state?.enemies?.length>240)?.65:1;return Math.floor((Profile.data.settings.effects==='low'?220:640)*crowd)}
   function reset(){if(engine)engine.destroy();engine=new Proton.default();emitter=new Proton.Emitter();engine.addEmitter(emitter);emitter.stop();events=[];time=0}
   function burst(x,y,color,count=20,speed=150,kind='spark',direction=null){
     if(!emitter)return;count=Math.min(count,cap()-emitter.particles.length);if(Profile.data.settings.effects==='low')count=Math.ceil(count*.5);
@@ -85,7 +85,7 @@ const VFX=(()=>{
       for(let j=0;j<5+lv;j++){let a=time*.85+j*6.283/(5+lv);ctx.strokeStyle=selected===2?'#c084fc44':selected===1?'#34d39944':'#fb718544';ctx.lineWidth=3.5;ctx.beginPath();ctx.ellipse(s.p.x,s.p.y,r,r*.5,a,0,7);ctx.stroke()}
     }
     if(s.skills[2]){
-      const lv=s.skills[2],r=64+lv*5+(s.fusions?.[0]?18:0);ctx.strokeStyle=s.fusions?.[0]?'#ffe38f88':s.evolved?'#f1d18366':'#38bdf855';ctx.lineWidth=s.fusions?.[0]?3:2;ctx.beginPath();ctx.arc(s.p.x,s.p.y,r,0,7);ctx.stroke();
+      const lv=s.skills[2],r=38+lv*4+(s.fusions?.[0]?12:0);ctx.strokeStyle=s.fusions?.[0]?'#ffe38f88':s.evolved?'#f1d18366':'#38bdf855';ctx.lineWidth=s.fusions?.[0]?3:2;ctx.beginPath();ctx.arc(s.p.x,s.p.y,r,0,7);ctx.stroke();
       for(let j=0;j<8;j++){let a=time*(s.fusions?.[0]?1.1:.65)+j*6.283/8;ctx.save();ctx.translate(s.p.x+Math.cos(a)*r,s.p.y+Math.sin(a)*r);ctx.rotate(a);ctx.fillStyle=s.fusions?.[0]?'#ffe6a3cc':'#bae6fd99';ctx.fillRect(-4,-2,8,4);ctx.restore()}
     }
     if(s.fusions?.[3]){
@@ -104,11 +104,14 @@ const VFX=(()=>{
     ctx.restore()
   }
   function front(s){
-    if(!engine)return;ctx.save();ctx.globalCompositeOperation='lighter';
-    for(const p of emitter.particles){const k=Math.max(0,1-p.age/p.life),r=Math.max(2,Math.round(p.fx.size*k));ctx.fillStyle=p.fx.color;ctx.globalAlpha=k*.8;ctx.fillRect(Math.round(p.p.x/2)*2,Math.round(p.p.y/2)*2,r,r)}
-    ctx.globalAlpha=1;
+    if(!engine)return;
+    const cx=s.camX??s.p.x,cy=s.camY??s.p.y,vw=W/2+140,vh=H/2+140;
+    ctx.save();
     for(const e of events){
-      const u=e.age/e.life,k=1-u;if(eventArt(e,u,k))continue;ctx.globalAlpha=k;ctx.strokeStyle=e.color;
+      if(Math.abs(e.x-cx)>vw||Math.abs(e.y-cy)>vh)continue;
+      const u=e.age/e.life,k=1-u*u;
+      if(eventArt(e,u,k))continue;
+      ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=k;ctx.strokeStyle=e.color;
       if(e.type==='slash'||e.type==='flail'){
         ctx.save();ctx.translate(e.x,e.y);ctx.rotate(e.a||0);const arcs=e.evolved?4:3;
         for(let i=0;i<arcs;i++){ctx.lineWidth=(12+(e.lv||1))-i*3;ctx.globalAlpha=k*(.14+i*.17);ctx.beginPath();ctx.arc(0,0,(e.r||55)+u*32+i*5,e.type==='flail'?-1.8:-1.15,e.type==='flail'?1.8:1.15);ctx.stroke()}
@@ -121,15 +124,18 @@ const VFX=(()=>{
       }
       if(e.type==='stomp'||e.type==='evolution'||e.type==='buddha'||e.type==='ice'||e.type==='meteor'||e.type==='blood_burst'){
         const r=(e.r||110)*(1-Math.pow(1-u,3));
-        for(let i=0;i<3;i++){ctx.lineWidth=i===0?5:2;ctx.globalAlpha=k*(1-i*.25);ctx.beginPath();ctx.arc(e.x,e.y,r*(1-i*.16),0,7);ctx.stroke()}
+        ctx.strokeStyle='#141824';ctx.lineWidth=7*k;ctx.globalAlpha=k*.45;ctx.beginPath();ctx.arc(e.x,e.y,r,0,7);ctx.stroke();
+        ctx.strokeStyle=e.color;
+        for(let i=0;i<3;i++){ctx.lineWidth=i===0?4.5:2;ctx.globalAlpha=k*(1-i*.25);ctx.beginPath();ctx.arc(e.x,e.y,r*(1-i*.16),0,7);ctx.stroke()}
         for(let j=0;j<10;j++){let a=j*6.283/10;ctx.beginPath();ctx.moveTo(e.x+Math.cos(a)*r*.78,e.y+Math.sin(a)*r*.78);ctx.lineTo(e.x+Math.cos(a)*r*1.06,e.y+Math.sin(a)*r*1.06);ctx.stroke()}
         ctx.font='bold 22px "Batang",serif';ctx.fillStyle=e.color;ctx.textAlign='center';
         const hanja=e.hanja||(e.type==='buddha'?'佛':e.type==='ice'?'氷':e.type==='meteor'?'天':e.type==='blood_burst'?'血':e.evolved?'極':'震');
         ctx.fillText(hanja,e.x,e.y+7);
       }
       if(e.type==='lightning'||e.type==='dragon_strike'){
-        for(const [width,alpha] of [[14,.15],[5,.55],[2,1]]){
-          ctx.lineWidth=width;ctx.globalAlpha=k*alpha;ctx.strokeStyle=width===2?'#fffbe5':e.color;
+        ctx.lineCap='round';ctx.lineJoin='round';
+        for(const [width,alpha] of [[13,.18],[5.5,.65],[2.2,1]]){
+          ctx.lineWidth=width;ctx.globalAlpha=k*alpha;ctx.strokeStyle=width===2.2?'#fffbe5':e.color;
           ctx.beginPath();e.points.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke();
         }
       }
@@ -138,8 +144,16 @@ const VFX=(()=>{
         ctx.lineWidth=3.2;ctx.globalAlpha=k*.88;ctx.strokeStyle=e.color||'#dff0ff';
         ctx.beginPath();ctx.moveTo(e.x,e.y);ctx.lineTo(mx,my);ctx.lineTo(e.tx,e.ty);ctx.stroke();
       }
+      ctx.restore();
     }
-    ctx.restore()
+    ctx.globalCompositeOperation='lighter';
+    for(const p of emitter.particles){
+      if(Math.abs(p.p.x-cx)>vw||Math.abs(p.p.y-cy)>vh)continue;
+      const k=Math.max(0,1-p.age/p.life),r=Math.max(2,Math.round(p.fx.size*k));
+      ctx.fillStyle=p.fx.color;ctx.globalAlpha=k*.78;
+      ctx.fillRect(Math.round(p.p.x/2)*2,Math.round(p.p.y/2)*2,r,r);
+    }
+    ctx.restore();
   }
   function projectile(b,s){
     const a=Math.atan2(b.vy,b.vx),sc=b.scale||1,st=b.style||'default';

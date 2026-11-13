@@ -1,14 +1,16 @@
 'use strict';
-function projectilePolicy(type,style,scale=1){
- if(style==='taiji')return {mode:'pierce',remainingHits:scale>1.2?4:3};
- if(style==='blood_spear')return {mode:'pierce',remainingHits:4};
- if(style==='demonic_slash')return {mode:'pierce',remainingHits:3};
- if(style==='blood_blade'||style==='cleaver_wave')return {mode:'pierce',remainingHits:2};
- if(style==='shadow_dagger'||style==='wraith')return {mode:'bounce',remainingHits:2};
- if(style==='emerald_staff'||style==='dharma_wheel')return {mode:'return',remainingHits:2,returning:false,flight:.38};
- if(style==='venom_wave')return {mode:'field',remainingHits:1,blast:48};
- if(style==='plum'||style==='plum_dagger')return {mode:'burst',remainingHits:1,blast:30};
- if(type==='fire'||style==='black_dragon')return {mode:'burst',remainingHits:1,blast:style==='black_dragon'?64:44};
+function projectilePolicy(type,style,scale=1,lv=1){
+ if(lv<=0)return {mode:'single',remainingHits:1};
+ const tier=lv>=5?2:lv>=3?1:0;
+ if(style==='taiji')return {mode:'pierce',remainingHits:1+tier+(scale>1.25?1:0)};
+ if(style==='blood_spear')return {mode:'pierce',remainingHits:2+tier};
+ if(style==='demonic_slash')return {mode:'pierce',remainingHits:1+tier};
+ if(style==='blood_blade'||style==='cleaver_wave')return {mode:'pierce',remainingHits:1+tier};
+ if(style==='shadow_dagger'||style==='wraith')return {mode:'bounce',remainingHits:1+tier};
+ if(style==='emerald_staff'||style==='dharma_wheel')return {mode:'return',remainingHits:1+tier,returning:false,flight:.36};
+ if(style==='venom_wave')return {mode:'field',remainingHits:1,blast:36+lv*4};
+ if(style==='plum'||style==='plum_dagger')return {mode:'burst',remainingHits:1,blast:24+lv*3};
+ if(type==='fire'||style==='black_dragon')return {mode:'burst',remainingHits:1,blast:(style==='black_dragon'?46:32)+lv*4};
  return {mode:'single',remainingHits:1};
 }
 function nearestShotTarget(s,b,r=270){let near=null,best=r*r;const targets=s.grid?shotTargets(s,b.x-r,b.y-r,b.x+r,b.y+r):s.enemies;for(const e of targets){if(e.dead||b.hit.has(e))continue;const d=(e.x-b.x)**2+(e.y-b.y)**2;if(d<best){best=d;near=e}}return near}

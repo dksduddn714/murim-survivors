@@ -291,6 +291,10 @@ const WuxiaUI = (() => {
   ];
 
   const trainingBodies = {
+    mobility: col => `<path d="M5 17l8-12 5 2-5 9 6 2-2 3H5z" fill="${col}"/><path d="M2 8h6M2 12h4" stroke="#bae3d6" stroke-width="2"/>`,
+    destiny: col => `<rect x="4" y="5" width="16" height="15" rx="2" fill="#294750" stroke="${col}"/><path d="M7 10a5 5 0 018-1l2 3m0-4v4h-4M17 16a5 5 0 01-8 1" fill="none" stroke="${col}" stroke-width="2"/>`,
+    origin: col => `<path d="M5 4h14v17H5z" fill="#365554" stroke="${col}"/><path d="M8 4v17m3-12h5m-5 4h5m-5 4h4" stroke="#e8d9ad" stroke-width="1.5"/>`,
+    recovery: col => `<path d="M8 4h8v5l4 5v6H4v-6l4-5z" fill="#477c77" stroke="${col}"/><path d="M12 11v7m-3-3h6" stroke="#e8dab0" stroke-width="2"/>`,
     vitality: (col) => `<path d="M12 4l6 4v6c0 4-3 6-6 7-3-1-6-3-6-7V8l6-4z" stroke="${col}" stroke-width="2" fill="#1e293b"/><path d="M11 8h2v8h-2V8zm-3 3h8v2H8v-2z" fill="#ffe49e"/>`,
     power: (col) => `<path d="M18 3h3v3l-9 9-3-3 9-9z" fill="${col}"/><path d="M6 12l6 6-2 2-6-6 2-2zm-2 6l2 2-2 2-2-2 2-2z" fill="#e9c37d"/>`,
     fortune: (col) => `<circle cx="12" cy="12" r="8" stroke="${col}" stroke-width="2" fill="#1e293b"/><rect x="9" y="9" width="6" height="6" stroke="#ffe49e" stroke-width="1.6"/>`
@@ -408,9 +412,9 @@ if (typeof window !== 'undefined') window.WuxiaUI = WuxiaUI;
 // v1.6: make preview cards describe actual finite hit behavior.
 (()=>{
  const patterns=[
- ['검기 · 최대 3~4명','꽃잎탄 · 1명 명중 후 소폭발','근접 궤도검 + 유한 검기','지점 낙하 · 범위 기절','왕복 법륜 · 방향당 최대 2명 · 체력 +25','어검 · 최대 3명 · 이속 +15','자하 영역 · 지속 피해','신룡 · 제한 표적과 연쇄','권풍 · 첫 명중 폭발','지점 곤격 · 범위 기절','왕복 봉기 + 범위 타격','인력장 · 제한 표적'],
+ ['검기 · 1명부터 성장 관통','꽃잎탄 · 1명 명중 후 소폭발','근접 궤도검 + 유한 검기','지점 낙하 · 범위 기절','왕복 법륜 · 방향당 1~3명 · 체력 +25','어검 · 최대 3명 · 이속 +15','자하 영역 · 지속 피해','신룡 · 제한 표적과 연쇄','권풍 · 첫 명중 폭발','지점 곤격 · 범위 기절','왕복 봉기 + 범위 타격','인력장 · 제한 표적'],
  ['혈도 · 최대 2명','암기 · 한 번 도탄','분신 · 소범위 참격','혈옥 · 지점 폭발','환영 혈도 · 최대 2명 · 체력 +25','추혼 암기 · 한 번 도탄 · 이속 +15','독무 · 지속 피해','독뢰 · 제한 표적과 연쇄','독구 · 명중 후 독지대','고충 · 지점 마비','대도 · 최대 2명 + 범위 타격','회오리 · 제한 표적'],
- ['천마검기 · 최대 3명','추적 원혼 · 한 번 연결','소환 원혼 · 한 번 연결','운석 · 지점 낙하','혈창 · 최대 4명 · 체력 +25','낙뢰 · 지점 타격 · 이속 +15','흑염 영역 · 지속 피해','혈폭 · 제한 표적과 연쇄','흑염구 · 첫 명중 폭발','환술 · 지점 공포','마염검기 · 최대 3명 + 범위 타격','혈영장 · 제한 표적 흡혈']
+ ['천마검기 · 1~3명','추적 원혼 · 한 번 연결','소환 원혼 · 한 번 연결','운석 · 지점 낙하','혈창 · 2~4명 · 체력 +25','낙뢰 · 지점 타격 · 이속 +15','흑염 영역 · 지속 피해','혈폭 · 제한 표적과 연쇄','흑염구 · 첫 명중 폭발','환술 · 지점 공포','마염검기 · 최대 3명 + 범위 타격','혈영장 · 제한 표적 흡혈']
  ];
  for(let f=0;f<3;f++){const set=WuxiaUI.getFactionSkillSet(f);set.desc=set.desc.map((old,i)=>'['+set.sects[i]+'] '+patterns[f][i]+' · '+(old.match(/5성.*$/)?.[0]||''));set.tags=patterns[f].map(s=>s.split(' · ').slice(0,2).join(' · '))}
 })();
