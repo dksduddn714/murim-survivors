@@ -25,7 +25,7 @@ const SectSystem=(()=>{
  function strike(s,x,y,r,n,type='stomp',limit=8){for(const e of candidates(s,x,y,r,limit))damage(e,n,Math.atan2(e.y-y,e.x-x),'signature');VFX.cast(type,x,y,{r,color:config().color})}
  function fx(s,type,x,y,tx=x,ty=y){const q=ensure(s);q.fx.push({type,x,y,tx,ty,t:.65,max:.65,color:config().color});if(q.fx.length>12)q.fx.shift()}
  function cast(s){const q=ensure(s),cfg=config(),p=s.p,near=candidates(s,p.x,p.y,520,8),e=near[0],form=q.mastery[2],r=size(s);if(!e&&cfg.type!=='ward')return false;
-  const base=70+s.level*4;q.casts++;
+  const base=(70+s.level*4)*[1,1.15,.8,.75,1,.95,.8,.85,.8,.85,.95,.95][selected*4+subSect];q.casts++;
   if(cfg.type==='ward'){q.ward=1;fx(s,'ward',p.x,p.y)}
   else if(cfg.type==='vortex'||cfg.type==='venom'||cfg.type==='embers'){q.fields.push({type:cfg.type,x:cfg.type==='vortex'?p.x:e.x,y:cfg.type==='vortex'?p.y:e.y,r:(cfg.type==='vortex'?112:90)*r,t:3,tick:0,dmg:(cfg.type==='embers'?32:cfg.type==='venom'?22:18)+s.level*.9});if(q.fields.length>3)q.fields.shift();fx(s,cfg.type,e.x,e.y)}
   else if(cfg.type==='petals'||cfg.type==='blood'){near.slice(0,3+Math.floor(form/3)).forEach((o,j)=>{if(cfg.type==='blood')o.bloodMarked=true;q.pending.push({type:cfg.type,e:o,x:o.x,y:o.y,delay:.55+j*.16,n:base*1.15,r:42*r});fx(s,cfg.type,o.x,o.y)})}
@@ -41,7 +41,7 @@ const SectSystem=(()=>{
   compact(q.fields,f=>{f.t-=dt;f.tick-=dt;if(f.tick<=0){f.tick=.3;for(const e of candidates(s,f.x,f.y,f.r,12)){if(f.type==='vortex'){if(!e.boss){e.x+=(f.x-e.x)*.1;e.y+=(f.y-e.y)*.1}e.chilled=.4}else if(f.type==='venom')e.poisoned=.5;else e.blackFlame=.5;damage(e,f.dmg*.3,0,'signature')}}return f.t>0});compact(q.fx,f=>{f.t-=dt;return f.t>0});
  }
  function block(s){if(LinkSystem.block(s))return true;const q=ensure(s);if(!q.ward)return false;q.ward=0;strike(s,s.p.x,s.p.y,120*size(s),45+s.level*2,'buddha',10);showNotice('금강반진 · 방어와 반격');return true}
- function killed(s,e){if(config().type==='blood'&&e.bloodMarked)s.p.hp=Math.min(s.p.max,s.p.hp+6)}
+ function killed(s,e){if(config().type==='blood'&&e.bloodMarked)s.p.hp=Math.min(s.p.max,s.p.hp+2)}
  function upgrades(s){const q=ensure(s),labels=['절초 위력','운기 순환','초식 확장'],texts=['고유 절초 피해 +12%','고유 절초 재사용 대기 -5%','절초 범위 +8% · 3단계마다 일부 표적 +1'];const out=[];for(let i=0;i<3;i++)if(q.mastery[i]<6)out.push({mastery:i,name:config().name+' · '+labels[i],text:texts[i]+' ('+(q.mastery[i]+1)+'/6)'});if(!out.length)out.push({mastery:3,name:'문파 운기조식',text:'심화 완성 · 체력 30 회복 및 절초 2초 당기기'});return out}
  function learn(s,i){const q=ensure(s);if(i===3){s.p.hp=Math.min(s.p.max,s.p.hp+30);q.cooldown=Math.max(0,q.cooldown-2)}else if(q.mastery[i]<6)q.mastery[i]++}
  function draw(s){const q=ensure(s);ctx.save();for(const f of q.fields){ctx.globalAlpha=Math.min(.32,f.t*.2);ctx.fillStyle=config().color;ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,7);ctx.fill();ctx.globalAlpha=.7;ctx.strokeStyle=config().color;ctx.lineWidth=2;for(let j=0;j<6;j++){const a=j*6.28/6+s.time*(f.type==='vortex'?1:-.25),x=f.x+Math.cos(a)*f.r*.7,y=f.y+Math.sin(a)*f.r*.7;ctx.fillRect(x-3,y-3,6,6)}}ctx.globalAlpha=1;

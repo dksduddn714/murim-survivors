@@ -224,3 +224,11 @@ test('rank-3 links unlock separately from legacy fusions, telegraph damage and c
 test('link defensive charge blocks once, lockout prevents simultaneous chain casts and book returns cleanly',()=>{
  const h=harness();h.run('start();state.skills.fill(3);syncSkills();state.links.cd.fill(0);state.enemies=[{x:40,y:0,hp:1e7,max:1e7,f:1}];LinkSystem.update(state,.01)');assert.equal(h.run('state.links.casts'),1);h.run('LinkSystem.update(state,.1)');assert.equal(h.run('state.links.casts'),1);h.run('state.links.ward=4');assert.equal(h.run('LinkSystem.block(state)'),true);assert.equal(h.run('LinkSystem.block(state)'),false);h.run('LinkSystem.open()');assert.equal(h.run('mode'),'pause');assert.equal(h.nodes.get('#camp').hidden,false);h.run("$('#campClose').onclick()");assert.equal(h.run('mode'),'play');h.run("openCamp();$('#campClose').onclick()");assert.equal(h.run('mode'),'play');
 });
+
+test('all twelve sect primary damage budgets stay within a bounded range and retain one initial target',()=>{
+ const h=harness(),dps=[];for(let f=0;f<3;f++)for(let sub=0;sub<4;sub++){h.run(`selected=${f};subSect=${sub};start()`);const n=h.run('primaryStats(state).damage/primaryStats(state).period*(primaryStats(state).ranged?.9:1)*(selected===2?1.16:1)');dps.push(n);assert.equal(h.run('primaryStats(state).targets'),1)}assert.ok(Math.max(...dps)/Math.min(...dps)<1.35);
+});
+test('defensive art growth is bounded, heals only once and retains owned upgrade choices',()=>{
+ const h=harness();h.run('start();state.skills.fill(0);state.skills[0]=2;state.skills[4]=0;state.level=2;upgrade(true)');assert.ok(h.run("$('#choices').children.some(b=>state.skills[+b.dataset.skill]>0)"));
+ h.run('state.skills.fill(0);state.skills[4]=4;upgrade(true)');const hp=h.run('state.p.max');h.run("$('#choices').children.find(b=>b.dataset.skill==='4').onclick()");assert.equal(h.run('state.p.max')-hp,6);
+});

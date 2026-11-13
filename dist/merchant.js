@@ -50,7 +50,7 @@ function buyMerchant(index){
   if(o.kind==='potion'){s.p.max+=10;s.p.hp=Math.min(s.p.max,s.p.hp+45*(1+Profile.data.training.destiny*.05))}
   if(o.kind==='qi')s.xp+=8;
   if(o.kind==='magnet')collectExperience(s);
-  if(o.kind==='skill'){s.skills[o.slot]++;if(o.slot===4){s.p.max+=25;s.p.hp=Math.min(s.p.max,s.p.hp+45*(1+Profile.data.training.destiny*.05))}syncSkills()}
+  if(o.kind==='skill'){s.skills[o.slot]++;if(o.slot===4){s.p.max+=s.skills[4]===1?12:6;s.p.hp=Math.min(s.p.max,s.p.hp+18)}syncSkills()}
   closeMerchant();s.hudClock=0;updateHUD(s,0);Sound.play('level');showNotice(o.name+' 구매 · 현재 경험치 소모');return true;
 }
 function drawMerchant(s){

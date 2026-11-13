@@ -3,7 +3,8 @@
 function canUseSkill(s,i){const start=WuxiaUI.SUB_SECTS[selected][subSect].startSkill;return (s.skills[i]||0)>0&&(i!==start||s.skills[i]>=2)}
 function primaryStats(s){
  const id=selected*4+subSect,heavy=[0,3,7].includes(id),ranged=[5,9,10,11].includes(id),swift=[2,6].includes(id),g=s.weaponGrowth||[0,0,0];
- return {id,heavy,ranged,swift,reach:(heavy?84:swift?66:75)+g[1]*11+Equipment.bonus(s,'reach'),damage:(heavy?28:swift?18:23)+s.level*1.15+g[0]*7,period:Math.max(.34,(heavy?.92:swift?.56:.72)-g[2]*.05),targets:1+Math.floor(g[1]/2),arc:heavy?1.05:.78};
+ const tuning=[{d:34,cd:.86},{d:25,cd:.70},{d:21,cd:.56},{d:34,cd:.86},{d:27,cd:.70},{d:24,cd:.67},{d:21,cd:.56},{d:34,cd:.86},{d:26,cd:.70},{d:24,cd:.67},{d:24,cd:.67},{d:24,cd:.67}][id];
+ return {id,heavy,ranged,swift,reach:(heavy?84:swift?66:75)+g[1]*11+Equipment.bonus(s,'reach'),damage:tuning.d+s.level*1.15+g[0]*7,period:Math.max(.34,tuning.cd-g[2]*.05),targets:1+Math.floor(g[1]/2),arc:heavy?1.05:.78};
 }
 function beginAttack(s,angle){const w=primaryStats(s);s.attack={age:0,duration:Math.min(.46,w.period*.7),phase:1,angle,face:Math.cos(angle)<0?-1:1,weapon:w};}
 function weaponGrowthUpgrade(){
@@ -51,7 +52,7 @@ function runAttacks(s,dt){
   // 0. 12문파 기본 공격 (근접 문파는 근접 베기 중심 + 단발 잔상, 원거리 문파는 단일 타격 기본탄)
   if(target&&s.skills.some(Boolean)&&s.cooldowns.innate<=0){
     const w=primaryStats(s);s.cooldowns.innate=w.period;beginAttack(s,angle);s._windup=true;
-    const baseDmg=w.ranged?w.damage*.85:w.damage*.45;
+    const baseDmg=w.ranged?w.damage*.90:w.damage*.45;
     if(w.ranged||(best>w.reach&&best<w.reach*2.1)){
     if(f===0){
       const st=sub===0?'arhat':sub===1?'taiji':sub===2?'plum':'dragon_wave';

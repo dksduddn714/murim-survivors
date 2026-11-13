@@ -410,3 +410,5 @@ body:has(#modal:not([hidden])) #lootToast,body:has(#camp:not([hidden])) #lootToa
 .merchant-choices .wx-skill-svg{display:block;width:64px;height:64px;margin:0 auto 10px}.dialogactions{position:sticky;bottom:-1px;background:#101b22f5;padding:10px 0 3px;z-index:3}#campClose{position:sticky;bottom:0;z-index:3;min-height:42px}
 @media(max-height:500px){.skilldock{width:max-content;max-width:calc(100vw - 280px);padding:5px 7px}.skilldock>small{display:none}#skills{gap:3px}#skills .skilltile{min-width:32px;padding:4px 3px 6px}#skills .skilltile b,#skills .skillglyph{display:none}#skills .wx-skill-svg{width:18px;height:18px}#skills .skilltile small{font-size:6px;letter-spacing:0;margin-top:3px}.merchant-choices .wx-skill-svg{width:40px;height:40px;margin-bottom:4px}.dialogactions{padding-top:6px}}
 body:has(#modal:not([hidden])) #minimap,body:has(#camp:not([hidden])) #minimap,body:has(#modal:not([hidden])) #sectSkill,body:has(#camp:not([hidden])) #sectSkill{visibility:hidden}
+
+.sub-avatar-wrap{display:grid;place-items:center;flex-shrink:0}.sub-avatar{object-fit:contain;align-self:center;justify-self:center}

@@ -1,5 +1,5 @@
 'use strict';
-window.MURIM_VERSION='1.11.0';
+window.MURIM_VERSION='1.12.0';
 const survivalTimeLimit=300;
 const $=s=>document.querySelector(s),c=$('#world'),ctx=c.getContext('2d');let W,H,dpr;function resize(){dpr=1;W=innerWidth;H=innerHeight;c.width=W*dpr;c.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.imageSmoothingEnabled=false}addEventListener('resize',resize);resize();
 const factions=[{name:'정파',color:'#38bdf8',enemy:[1,2],weapon:'태극·매화·금강·항룡'},{name:'사파',color:'#f43f5e',enemy:[0,2],weapon:'혈도·독공·귀영·녹림'},{name:'마교',color:'#c084fc',enemy:[0,1],weapon:'천마·혈마·귀마·흑염'}];let selected=0,subSect=0,mode='menu',state=null,keys={},pointer=null,last=0,ambient=0;
@@ -9,7 +9,7 @@ let desc=[
   '[화산파] 매화 꽃잎을 흩날리는 원거리 다연발 쾌검 사출 · 5성+자하신공5성 합벽: 【이십사수매화검법】',
   '[무당파] 음양 쌍검이 회전하며 원거리 적에게 검기 탄환 사출 · 5성+태극검법5성 합벽: 【태극양의검진】',
   '[소림사] 전방 원거리 적 무리에 거대한 황금 불장(佛掌) 낙하 폭격 · 5성+항룡십팔장5성 합벽: 【금강항룡신장】',
-  '[소림사] 체력 +25·회복 및 원거리 적을 관통하는 황금 만(卍)자 법륜 사출 · 5성+타구봉법5성 합벽: 【천하무구불괴진】',
+  '[소림사] 체력 첫 습득 +12 / 이후 +6·회복 및 원거리 적을 관통하는 황금 만(卍)자 법륜 사출 · 5성+타구봉법5성 합벽: 【천하무구불괴진】',
   '[무당파] 이속 +15 증가 및 이동 시 후방 적에게 원거리 태극 비검 사출 · 5성+태극권5성 합벽: 【무당진무태극공】',
   '[화산파] 원거리 적 진영에 자색 매화 검기 폭풍을 일으켜 둔화·연타 · 5성+매화검법5성 합벽: 【이십사수매화검법】',
   '[개방] 하늘을 가르는 황금 신룡 장풍이 원거리 적들을 연쇄 폭격 · 5성+대력금강장5성 합벽: 【금강항룡신장】',
@@ -40,7 +40,7 @@ function renderSubSects(){
     if(cv&&typeof WuxiaSprites!=='undefined'&&cv.getContext){
       const actx=cv.getContext('2d');
       if(actx&&typeof actx.save==='function'){
-        WuxiaSprites.drawHero(actx,28,36,selected,.4,.15,idx);
+        WuxiaSprites.drawPortrait(actx,selected,idx);
       }
     }
   });
@@ -97,7 +97,7 @@ function skillDelta(i,cur,next){
  if(i===0)return '검기 '+(1+Math.floor(cur/2))+' → '+(1+Math.floor(next/2))+'발 · 타격 '+(22+cur*9)+' → '+(22+next*9);
  if(i===1)return '비도 '+(1+Math.floor(Math.max(0,cur-1)*.6))+' → '+(1+Math.floor(Math.max(0,next-1)*.6))+'발 · 타격 '+(17+cur*7)+' → '+(17+next*7);
  if(i===2)return '회전 무기 '+Math.min(6,cur)+' → '+Math.min(6,next)+'개';
- if(i===4)return '최대 체력 +25 · 즉시 회복 +45 · 보조 무기 강화';
+ if(i===4)return '최대 체력 첫 습득 +12 / 이후 +6 · 즉시 회복 +45 · 보조 무기 강화';
  if(i===5)return '이동 속도 +15 · 추격 회피 강화';
  if(i===6)return '영역 반경 '+(82+cur*15)+' → '+(82+next*15)+' · 지속 피해 증가';
  const values={3:[26,12],7:[24,13],8:[20,10],9:[18,9],10:[25,13],11:[18,9]},v=values[i];
@@ -116,6 +116,10 @@ function upgrade(forceGeneral=false){$('#trade').hidden=true;
   for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}
   let options=pool.slice(0,3);const signature=pool.find(i=>sigSet.has(i));
   if(signature!==undefined&&!options.some(i=>sigSet.has(i)))options[options.length-1]=signature;
+  // Keep a growth option visible, rather than repeatedly diluting the build with new arts.
+  const owned=pool.find(i=>state.skills[i]>0);if(owned!==undefined&&!options.some(i=>state.skills[i]>0)){const slot=options.findIndex(i=>!sigSet.has(i));if(slot>=0)options[slot]=owned}
+  const partner=LinkSystem.recipes.flatMap(r=>state.skills[r.a]>=2&&state.skills[r.b]<3?[r.b]:state.skills[r.b]>=2&&state.skills[r.a]<3?[r.a]:[]).find(i=>pool.includes(i)&&!options.includes(i));
+  if(partner!==undefined){const slot=options.findIndex(i=>!sigSet.has(i)&&i!==owned);if(slot>=0)options[slot]=partner}
   if(!options.length){state.p.hp=Math.min(state.p.max,state.p.hp+35);mode='play';$('#modal').hidden=true;showNotice('운기조식 · 체력 +35');return}
   $('#choices').innerHTML='';
   renderReroll(state);
@@ -137,7 +141,7 @@ function upgrade(forceGeneral=false){$('#trade').hidden=true;
       if(mode!=='upgrade')return;
       state.skills[i]=(state.skills[i]||0)+1;$('#reroll').hidden=true;
       if(typeof Sound!=='undefined')Sound.play('level');
-      if(i===4){state.p.max+=25;state.p.hp=Math.min(state.p.max,state.p.hp+45)}
+      if(i===4){state.p.max+=cur===0?12:6;state.p.hp=Math.min(state.p.max,state.p.hp+18)}
       syncSkills();
       $('#modal').hidden=true;mode='play';
     };
@@ -191,7 +195,7 @@ function damage(e,n,direction,kind='sword'){
   const crit=kind!=='poison'&&kind!=='ring'&&kind!=='status'&&Math.random()<Equipment.bonus(state,'crit');if(crit)n*=1.5;
   n*=1+Equipment.bonus(state,'attack');
   n*=(1+Profile.data.training.power*.05)*(selected==2?1.16:1);
-  if(e.bleed>0)n*=1+Math.min(.35,e.bleed*.07);
+  if(e.bleed>0)n*=1+Math.min(.22,e.bleed*.045);
   if(e.boss&&n>0){const window=Math.floor(state.time*2);if(e.damageWindow!==window){e.damageWindow=window;e.damageSpent=0}const allowance=e.max*.12-(e.damageSpent||0);n=Math.min(n,Math.max(0,allowance));if(n<=0){e.guardPulse=.15;return}e.damageSpent=(e.damageSpent||0)+n}
   e.hp-=n;hitFeedback(e,n,direction,kind);
   if(n>=16&&kind!=='poison'&&kind!=='ring'&&state.texts.length<14){const jitter=((state.texts.length%3)-1)*11;state.texts.push({x:e.x+jitter,y:e.y-36-(state.texts.length%2)*6,t:.58,max:.58,n:Math.round(n),crit:crit||n>=55||kind==='signature'})}
@@ -207,17 +211,17 @@ function damage(e,n,direction,kind='sword'){
       state._chainLock=true;
       if((selected===1&&(e.bleed>0||subSect===0))||e.bleed>=2){
         VFX.cast('blood_burst',e.x,e.y,{r:86,color:'#ff2a55'});
-        const bDmg=20+(state.skills[1]||1)*7;
-        for(const o of queryGridRadius(state,e.x,e.y,86)){o.bleed=(o.bleed||0)+1;damage(o,bDmg,Math.atan2(o.y-e.y,o.x-e.x),'stomp')}
+        const bDmg=14+(state.skills[1]||1)*5;
+        for(const o of queryGridRadius(state,e.x,e.y,86).slice(0,6)){o.bleed=(o.bleed||0)+1;damage(o,bDmg,Math.atan2(o.y-e.y,o.x-e.x),'stomp')}
       }
       if(selected===1&&(e.poisoned>0||subSect===1)){
         const pDmg=16+(state.skills[6]||1)*5;
-        for(const o of queryGridRadius(state,e.x,e.y,80)){o.poisoned=.85;damage(o,pDmg,null,'poison')}
+        for(const o of queryGridRadius(state,e.x,e.y,80).slice(0,6)){o.poisoned=.85;damage(o,pDmg,null,'poison')}
       }
       if(selected===2&&(e.blackFlame>0||subSect===3)){
         VFX.cast('stomp',e.x,e.y,{r:78,color:'#9d4edd',hanja:'炎'});
         const fDmg=18+(state.skills[8]||1)*6;
-        for(const o of queryGridRadius(state,e.x,e.y,78)){o.blackFlame=.9;damage(o,fDmg,Math.atan2(o.y-e.y,o.x-e.x),'fire')}
+        for(const o of queryGridRadius(state,e.x,e.y,78).slice(0,6)){o.blackFlame=.9;damage(o,fDmg,Math.atan2(o.y-e.y,o.x-e.x),'fire')}
       }
       state._chainLock=false;
     }

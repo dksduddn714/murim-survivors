@@ -120,7 +120,9 @@ const WuxiaSprites=(()=>{
   if(cache.size>=1024)cache.delete(cache.keys().next().value);cache.set(key,c);return c;
  }
  function paint(ctx,x,y,f,role,sub,t,attack,hit,scale,moving,face){const image=build(f,role,sub,animationFrame(t,moving),hit,attack);ctx.save();ctx.imageSmoothingEnabled=false;ctx.translate(Math.round(x),Math.round(y));if(face<0)ctx.scale(-1,1);if(hit){ctx.translate(-3,1);ctx.scale(1.08,.92)}else if(attack===3){ctx.translate(3,0);ctx.scale(1.04,.97)}else if(moving){ctx.rotate(Math.sin(t*10*Math.PI/4)*.025)}ctx.drawImage(image,-37*scale,-80*scale,96*scale,96*scale);ctx.restore()}
+ const portraitBounds=new Map();
+ function drawPortrait(ctx,f,sub){const image=build(f,'hero',sub,0,false,0),key=f*4+sub;let b=portraitBounds.get(key);if(!b){const data=image.getContext('2d').getImageData(0,0,96,96).data;b={l:96,t:96,r:0,b:0};for(let y=0;y<96;y++)for(let x=0;x<96;x++)if(data[(y*96+x)*4+3]){b.l=Math.min(b.l,x);b.r=Math.max(b.r,x);b.t=Math.min(b.t,y);b.b=Math.max(b.b,y)}portraitBounds.set(key,b)}const w=b.r-b.l+1,h=b.b-b.t+1,cw=ctx.canvas.width,ch=ctx.canvas.height,k=Math.min((cw-8)/w,(ch-8)/h);ctx.clearRect(0,0,cw,ch);ctx.imageSmoothingEnabled=false;ctx.drawImage(image,b.l,b.t,w,h,(cw-w*k)/2,(ch-h*k)/2,w*k,h*k)}
  function drawHero(ctx,x,y,f,t,swing=0,sub=0,motion=null){const portrait=ctx.canvas&&ctx.canvas.width<=64;const attack=motion?.attackPhase??(swing>0?3:0);paint(ctx,x,y,f,'hero',sub,motion?.clock??t,attack,false,portrait?.48:.52,motion?.moving??false,motion?.face??1)}
  function drawEnemy(ctx,e,t){const pose=e.aiming>0?2:e.attackPose>.12?3:e.attackPose>.06?4:e.attackPose>0?5:e.charge>.45?2:e.charge>0?3:0;paint(ctx,e.x,e.y,e.f||0,e.boss?'boss':e.role||'disciple',e.look||0,e.animTime??t,pose,e.hit>0,e.boss?1.05:e.elite?.62:.52,e.moving??false,e.face??1)}
- return{drawHero,drawEnemy,animationFrame,attackFrame,heroNames,roles,frame:build,style:'C',cellSize:96,characterPixels:64,get cachedFrames(){return cache.size}};
+ return{drawPortrait,drawHero,drawEnemy,animationFrame,attackFrame,heroNames,roles,frame:build,style:'C',cellSize:96,characterPixels:64,get cachedFrames(){return cache.size}};
 })();
