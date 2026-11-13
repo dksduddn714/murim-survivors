@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="ko" data-version="1.14.0">
+<html lang="ko" data-version="1.15.0">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b0f17"><meta name="description" content="정파·사파·마교 12문파 36무공 도트 무협 액션 생존 게임">
 <link rel="icon" href="icon.svg"><link rel="apple-touch-icon" href="icon-192.png">
-<link rel="manifest" href="manifest.webmanifest"><title>무림혈전 · 강호십이문파</title><link rel="stylesheet" href="style.css?v=114.0">
+<link rel="manifest" href="manifest.webmanifest"><title>무림혈전 · 강호십이문파</title><link rel="stylesheet" href="style.css?v=115.0">
 </head>
 <body data-theme="0">
 <canvas id="world" aria-label="무림혈전 전투 화면"></canvas>
@@ -24,7 +24,7 @@
       <div class="brand-lockup">
         <span class="seal-stamp">武林</span>
         <div>
-          <div class="eyebrow">DARK WUXIA ACTION SURVIVORS <span>v1.14</span></div>
+          <div class="eyebrow">DARK WUXIA ACTION SURVIVORS <span>v1.15</span></div>
           <h1>무림<span>혈전</span><em>십이문파 출도</em></h1>
         </div>
       </div>
@@ -63,7 +63,7 @@
 <canvas id="minimap" width="160" height="132" role="img" aria-label="전장 미니맵: 청록색은 나, 붉은색은 적, 큰 붉은 점은 보스, 노란 사각형은 상인" hidden></canvas>
 <button id="trade" hidden aria-label="떠돌이 상인과 거래">상인 거래 [E]</button>
 <div id="sectSkill"><b id="sectSkillName"></b><span id="sectSkillState"></span><div><i id="sectSkillFill"></i></div></div>
-<div id="lootToast" role="status" hidden></div><div id="equipmentDock" aria-label="이번 출도 장비" hidden></div><div id="notice" role="status"></div><div id="rotate">📱 휴대폰을 가로로 돌려주세요</div>
+<div id="lootToast" role="status" hidden></div><div id="linkCast" role="status" hidden></div><div id="equipmentDock" aria-label="이번 출도 장비" hidden></div><div id="notice" role="status"></div><div id="rotate">📱 휴대폰을 가로로 돌려주세요</div>
 <script>
 if('serviceWorker' in navigator)navigator.serviceWorker.addEventListener('controllerchange',()=>{
 if(window.MURIM_VERSION===document.documentElement.dataset.version)return;
@@ -71,5 +71,5 @@ const menu=document.querySelector('#menu');
 if(menu&&!menu.hidden){location.reload();return}
 if(!document.querySelector('#applyUpdate')){const b=document.createElement('button');b.id='applyUpdate';b.textContent='새 버전 적용';b.onclick=()=>location.reload();document.querySelector('.menunav')?.append(b)}
 });
-</script><script src="vendor/proton.min.js?v=114.0"></script><script src="vendor/wuxia-ui-pack.js?v=114.0"></script><script src="vendor/wuxia-sprites.js?v=114.0"></script><script src="vendor/latest-pixel-items.js?v=114.0"></script><script src="vendor/jianghu-fx.js?v=114.0"></script><script src="profile.js?v=114.0"></script><script src="sound.js?v=114.0"></script><script src="world.js?v=114.0"></script><script src="bosses.js?v=114.0"></script><script src="enemies.js?v=114.0"></script><script src="sect.js?v=114.0"></script><script src="trajectories.js?v=114.0"></script><script src="combat.js?v=114.0"></script><script src="feedback.js?v=114.0"></script><script src="siege.js?v=114.0"></script><script src="vfx.js?v=114.0"></script><script src="arena.js?v=114.0"></script><script src="equipment.js?v=114.0"></script><script src="jianghu.js?v=114.0"></script><script src="links.js?v=114.0"></script><script src="progression.js?v=114.0"></script><script src="game.js?v=114.0"></script><script src="merchant.js?v=114.0"></script><script src="camp.js?v=114.0"></script><script src="controls.js?v=114.0"></script><script src="arsenal.js?v=114.0"></script><script src="app.js?v=114.0"></script>
+</script><script src="vendor/proton.min.js?v=115.0"></script><script src="vendor/wuxia-ui-pack.js?v=115.0"></script><script src="vendor/wuxia-sprites.js?v=115.0"></script><script src="vendor/latest-pixel-items.js?v=115.0"></script><script src="vendor/jianghu-fx.js?v=115.0"></script><script src="profile.js?v=115.0"></script><script src="sound.js?v=115.0"></script><script src="world.js?v=115.0"></script><script src="bosses.js?v=115.0"></script><script src="enemies.js?v=115.0"></script><script src="sect.js?v=115.0"></script><script src="trajectories.js?v=115.0"></script><script src="combat.js?v=115.0"></script><script src="feedback.js?v=115.0"></script><script src="siege.js?v=115.0"></script><script src="vfx.js?v=115.0"></script><script src="arena.js?v=115.0"></script><script src="equipment.js?v=115.0"></script><script src="jianghu.js?v=115.0"></script><script src="links.js?v=115.0"></script><script src="progression.js?v=115.0"></script><script src="game.js?v=115.0"></script><script src="merchant.js?v=115.0"></script><script src="camp.js?v=115.0"></script><script src="controls.js?v=115.0"></script><script src="arsenal.js?v=115.0"></script><script src="app.js?v=115.0"></script>
 </body></html>

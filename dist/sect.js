@@ -24,7 +24,7 @@ const SectSystem=(()=>{
  function candidates(s,x,y,r,limit=8){const list=typeof queryGridRadius==='function'?queryGridRadius(s,x,y,r):s.enemies.filter(e=>!e.dead&&(e.x-x)**2+(e.y-y)**2<r*r);return list.sort((a,b)=>(a.x-x)**2+(a.y-y)**2-((b.x-x)**2+(b.y-y)**2)).slice(0,limit)}
  function strike(s,x,y,r,n,type='stomp',limit=8){for(const e of candidates(s,x,y,r,limit))damage(e,n,Math.atan2(e.y-y,e.x-x),'signature');VFX.cast(type,x,y,{r,color:config().color})}
  function fx(s,type,x,y,tx=x,ty=y){const q=ensure(s);q.fx.push({type,x,y,tx,ty,t:.65,max:.65,color:config().color});if(q.fx.length>12)q.fx.shift()}
- function cast(s){const q=ensure(s),cfg=config(),p=s.p,near=candidates(s,p.x,p.y,520,8),e=near[0],form=q.mastery[2],r=size(s);if(!e&&cfg.type!=='ward')return false;
+ function cast(s){const q=ensure(s),cfg=config(),p=s.p,near=candidates(s,p.x,p.y,280,8),e=near[0],form=q.mastery[2],r=size(s);if(!e&&cfg.type!=='ward')return false;
   const base=(70+s.level*4)*[1,1.15,.8,.75,1,.95,.8,.85,.8,.85,.95,.95][selected*4+subSect];q.casts++;
   if(cfg.type==='ward'){q.ward=1;fx(s,'ward',p.x,p.y)}
   else if(cfg.type==='vortex'||cfg.type==='venom'||cfg.type==='embers'){q.fields.push({type:cfg.type,x:cfg.type==='vortex'?p.x:e.x,y:cfg.type==='vortex'?p.y:e.y,r:(cfg.type==='vortex'?112:90)*r,t:3,tick:0,dmg:(cfg.type==='embers'?32:cfg.type==='venom'?22:18)+s.level*.9});if(q.fields.length>3)q.fields.shift();fx(s,cfg.type,e.x,e.y)}

@@ -32,7 +32,7 @@ test('36 unique skills, 36 unique SVG icons, ranged Demonic Cult offense, and 12
   assert.equal(new Set(icons).size,36);
   for(let f=0;f<3;f++){
     for(let s=0;s<4;s++){
-      h.run(`selected=${f};subSect=${s};renderSubSects();start();state.enemies=[{x:130,y:0,f:(${f}+1)%3,hp:120,max:120,speed:50,fire:1,charge:0,bleed:2,poisoned:.5,blackFlame:.5},{x:165,y:0,f:(${f}+1)%3,hp:300,max:300,speed:50,fire:1,charge:0}];runAttacks(state,.02);render()`);
+      h.run(`selected=${f};subSect=${s};renderSubSects();start();state.enemies=[{x:100,y:0,f:(${f}+1)%3,hp:120,max:120,speed:50,fire:1,charge:0,bleed:2,poisoned:.5,blackFlame:.5},{x:135,y:0,f:(${f}+1)%3,hp:300,max:300,speed:50,fire:1,charge:0}];runAttacks(state,.02);render()`);
       assert.ok(h.run('state.shots.length+(state.pendingShots?.length||0)')>0, `Faction ${f} subSect ${s} must fire ranged projectiles against distant enemy`);
       h.run('damage(state.enemies[0],500,0)');
       assert.ok(h.run('state.enemies[1].hp')<300);
@@ -148,7 +148,7 @@ test('boss burst guard, late shields, and lethal damage-over-time resolve correc
 test('primary melee has finite reach and target budget, ranged retains delayed release',()=>{
  const h=harness();h.run("selected=0;subSect=2;start();state.skills.fill(0);state.skills[1]=1;state.cooldowns={knife:999,innate:0};state.enemies=Array.from({length:8},(_,i)=>({x:45+i*2,y:0,hp:1000,max:1000,f:1}));runAttacks(state,.01);updateAttackMotion(state,.13)");
  assert.equal(h.run('state.enemies.filter(e=>e.hp<1000).length'),1);
- h.run("selected=1;subSect=1;start();state.skills.fill(0);state.skills[6]=1;state.enemies=[{x:280,y:0,hp:1000,max:1000,f:0}];runAttacks(state,.01)");assert.ok(h.run('state.pendingShots.length')>0);h.run('updateAttackMotion(state,.13)');assert.ok(h.run('state.shots.length')>0);
+ h.run("selected=1;subSect=1;start();state.skills.fill(0);state.skills[6]=1;state.enemies=[{x:170,y:0,hp:1000,max:1000,f:0}];runAttacks(state,.01)");assert.ok(h.run('state.pendingShots.length')>0);h.run('updateAttackMotion(state,.13)');assert.ok(h.run('state.shots.length')>0);
 });
 test('weapon growth changes damage reach cadence and allows ordinary manuals',()=>{
  const h=harness();h.run('start();state.level=3;const baseWeapon=primaryStats(state);upgrade()');assert.equal(h.run('mode'),'upgrade');assert.equal(h.nodes.get('#choices').children.length,3);
@@ -249,4 +249,11 @@ test('tempo: opening enemies arrive nearby, movement remains real-time and fast 
 });
 test('experience pull uses exponential time steps with equal outcomes at equal real time',()=>{
  function sample(dt){const h=harness();h.run('start();state.skills.fill(0);state.sect.cooldown=999;state.enemies=[];state.spawn=state.siegeNext=999;state.props=[];state.gems=[{x:100,y:0,value:1}];state.need=999');for(let i=0;i<Math.round(.1/dt);i++)h.run(`update(${dt})`);return h.run('state.gems[0].x')};assert.ok(Math.abs(sample(.05)-sample(.01))<.001);
+});
+test('range budgets stop projectiles and keep remote enemies outside the persistent aura',()=>{
+ const h=harness();h.run('start();state.props=[];state.enemies=[{x:380,y:0,hp:1000,max:1000,f:1,speed:0,fire:999}];state.skills.fill(0);state.sect.cooldown=999;state.spawn=state.siegeNext=999;shot(0,400,100,"sword");for(let i=0;i<12;i++)update(.05)');assert.equal(h.run('state.enemies[0].hp'),1000);assert.equal(h.run('state.shots.length'),0);
+ h.run('state.skills[6]=3;state.enemies=[{x:240,y:0,hp:1000,max:1000,f:1,speed:0,fire:999}];buildEnemyGrid(state);runAttacks(state,.2)');assert.equal(h.run('state.enemies[0].hp'),1000);
+});
+test('orbit contact deals visible timed damage without stacking every frame',()=>{
+ const h=harness();h.run('start();state.props=[];state.skills.fill(0);state.skills[2]=3;state.enemies=[{x:50,y:0,hp:1000,max:1000,f:1,speed:0,fire:999}];state.cooldowns={sword:999,knife:999,stomp:999,poison:999,lightning:999,fire:999,ice:999,flail:999,drain:999,guard:999,step:999,orb:999,innate:999};state.sect.cooldown=999;state.spawn=state.siegeNext=999;state.ring=0;update(.01)');const hp=h.run('state.enemies[0].hp');assert.ok(hp<1000);assert.ok(h.run('state.enemies[0].hit')>0);h.run('update(.02)');assert.equal(h.run('state.enemies[0].hp'),hp);h.run('state.ring=-.2;update(.2)');assert.ok(h.run('state.enemies[0].hp')<hp);
 });

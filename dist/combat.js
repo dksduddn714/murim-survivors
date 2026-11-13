@@ -32,7 +32,8 @@ function updateAttackMotion(s,dt){
 }
 function shot(a,spd,dmg,type,scale=1,style='default',homing=false,lv=1){
  if(state.shots.length+(state.pendingShots?.length||0)>=220)return null;
- const b={...projectilePolicy(type,style,scale,lv),x:state.p.x,y:state.p.y-7,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,t:scale>1.2?1.45:1.18,damage:dmg,type,scale:scale*.76,style,homing,hit:new Set()};
+ const maxRange=state._windup?(primaryStats(state).ranged?190+(state.weaponGrowth?.[1]||0)*8:Math.min(140,primaryStats(state).reach*1.6)):Math.min(300,232+lv*8);
+ const b={maxRange,remainingRange:maxRange,...projectilePolicy(type,style,scale,lv),x:state.p.x,y:state.p.y-7,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,t:scale>1.2?1.45:1.18,damage:dmg,type,scale:scale*.76,style,homing,hit:new Set()};
  if(state._windup){const g=state.weaponGrowth||[0,0,0];if(primaryStats(state).ranged){b.scale*=1+g[1]*.08;if(b.blast)b.blast*=1+g[1]*.08;if(g[1]>=3)b.remainingHits=(b.remainingHits||1)+1}b.delay=primaryStats(state).windup;(state.pendingShots??=[]).push(b)}else state.shots.push(b);return b;
 }
 function runAttacks(s,dt){
@@ -43,8 +44,8 @@ function runAttacks(s,dt){
   s.ring+=dt;
   s.cooldowns??={sword:0,knife:0,stomp:0,poison:0,lightning:0,fire:0,ice:0,flail:0,drain:0,guard:0,step:0,orb:0,innate:0};
   for(const k of Object.keys(s.cooldowns))s.cooldowns[k]=Math.max(0,s.cooldowns[k]-dt);
-  let target=null,best=540*540;
-  const nearPool=s.grid?queryGridRadius(s,p.x,p.y,540):s.enemies;
+  let target=null,best=280*280;
+  const nearPool=s.grid?queryGridRadius(s,p.x,p.y,280):s.enemies;
   for(let i=0;i<nearPool.length;i++){const e=nearPool[i];if(e.dead)continue;const d2=(e.x-p.x)**2+(e.y-p.y)**2;if(d2<best){best=d2;target=e}}
   best=Math.sqrt(best);
   const angle=target?Math.atan2(target.y-p.y,target.x-p.x):(s.facing?Math.atan2(s.facing.y,s.facing.x):0);
@@ -53,7 +54,7 @@ function runAttacks(s,dt){
   if(target&&s.skills.some(Boolean)&&s.cooldowns.innate<=0){
     const w=primaryStats(s);s.cooldowns.innate=w.period;beginAttack(s,angle);s._windup=true;
     const baseDmg=w.ranged?w.damage*.90:w.damage*.45;
-    if(w.ranged||(best>w.reach&&best<w.reach*2.1)){
+    if((w.ranged&&best<=190+(s.weaponGrowth?.[1]||0)*8)||(!w.ranged&&best>w.reach&&best<w.reach*1.6)){
     if(f===0){
       const st=sub===0?'arhat':sub===1?'taiji':sub===2?'plum':'dragon_wave';
       const tp=sub===2?'knife':sub===0?'fire':'sword';
@@ -125,7 +126,7 @@ function runAttacks(s,dt){
   if((canUseSkill(s,3)||s.fusions?.[2])&&s.cooldowns.stomp<=0){
     const lv=s.skills[3]||1,fused=!!s.fusions?.[2],evo=s.thunder||fused;
     s.cooldowns.stomp=fused?.82:evo?.98:Math.max(.95,1.35-lv*.07);
-    const r=92+lv*16+(fused?45:evo?25:0),dmg=(26+lv*12)*(fused?1.65:evo?1.35:1);
+    const r=62+lv*9+(fused?22:evo?12:0),dmg=(26+lv*12)*(fused?1.65:evo?1.35:1);
     const col=f===0?'#fbbf24':f===1?'#f43f5e':'#f59e0b';
     const hanja=f===0?'佛':f===1?'血':'天';
     const tx=target?target.x:p.x,ty=target?target.y:p.y;
@@ -175,16 +176,16 @@ function runAttacks(s,dt){
   // Slot 6: 정파[자하신공 원거리 자하검풍] / 사파[만독연무 원거리 독무탄] / 마교[흑염마공 원거리 흑염화구]
   if(canUseSkill(s,6)||s.fusions?.[1]){
     const lv=s.skills[6]||1,fused=!!s.fusions?.[1];
-    const r=82+lv*15+(fused?32:0);
+    const r=58+lv*8+(fused?16:0);
     const col=f===0?'#c084fc':f===1?'#10b981':'#9333ea';
-    const tx=target?target.x:p.x,ty=target?target.y:p.y;
+    const tx=p.x,ty=p.y;
     if(s.cooldowns.poison<=0){
       s.cooldowns.poison=fused?.5:.65;
       VFX.cast('poison',tx,ty,{r:r*.85,color:col,lv});
     }
     s.poisonTick=(s.poisonTick||0)+dt;
     if(!s.poisonStarted||s.poisonTick>=.12){const elapsed=s.poisonTick;s.poisonTick=0;s.poisonStarted=true;
-    for(const e of s.enemies)if(!e.dead&&(Math.hypot(e.x-p.x,e.y-p.y)<r||Math.hypot(e.x-tx,e.y-ty)<r*.9)){
+    for(const e of s.enemies)if(!e.dead&&Math.hypot(e.x-p.x,e.y-p.y)<r){
       e.poisoned=.45;
       if(f===2)e.blackFlame=.95;
       damage(e,elapsed*(9+lv*7.5)*(fused?1.55:1),null,'poison');
@@ -196,7 +197,7 @@ function runAttacks(s,dt){
   if(target&&(canUseSkill(s,7)||s.fusions?.[2])&&s.cooldowns.lightning<=0){
     const lv=s.skills[7]||1,fused=!!s.fusions?.[2];
     s.cooldowns.lightning=fused?.88:Math.max(.92,1.38-lv*.07);
-    const live=queryGridRadius(s,p.x,p.y,520).sort((a,b)=>(a.x-p.x)**2+(a.y-p.y)**2-((b.x-p.x)**2+(b.y-p.y)**2));
+    const live=queryGridRadius(s,p.x,p.y,280).sort((a,b)=>(a.x-p.x)**2+(a.y-p.y)**2-((b.x-p.x)**2+(b.y-p.y)**2));
     const targets=live.slice(0,lv+(fused?3:0));
     const col=f===0?'#fbbf24':f===1?'#10b981':'#e11d48';
     for(const e of targets){
@@ -234,7 +235,7 @@ function runAttacks(s,dt){
   if((canUseSkill(s,9)||s.fusions?.[3])&&s.cooldowns.ice<=0){
     const lv=s.skills[9]||1,fused=!!s.fusions?.[3];
     s.cooldowns.ice=fused?.88:Math.max(.92,1.52-lv*.1);
-    const r=94+lv*15+(fused?36:0),dmg=(18+lv*9)*(fused?1.55:1);
+    const r=64+lv*9+(fused?22:0),dmg=(18+lv*9)*(fused?1.55:1);
     const col=f===0?'#fbbf24':f===1?'#34d399':'#c084fc';
     const hanja=f===0?'棍':f===1?'蠱':'幻';
     const tx=target?target.x:p.x,ty=target?target.y:p.y;
@@ -253,7 +254,7 @@ function runAttacks(s,dt){
   if((canUseSkill(s,10)||s.fusions?.[4])&&s.cooldowns.flail<=0){
     const lv=s.skills[10]||1,fused=!!s.fusions?.[4];
     s.cooldowns.flail=fused?.78:Math.max(.75,1.28-lv*.09);
-    const r=105+lv*16+(fused?40:0),dmg=(25+lv*13)*(fused?1.65:1);
+    const r=70+lv*10+(fused?24:0),dmg=(25+lv*13)*(fused?1.65:1);
     const col=f===0?'#34d399':f===1?'#f59e0b':'#a855f7';
     const tx=target?target.x:p.x,ty=target?target.y:p.y;
     VFX.cast(fused?'buddha':'flail',tx,ty,{a:angle,r,color:col,evolved:fused,lv,hanja:f===0?'棒':f===1?'斬':'炎'});
@@ -271,7 +272,7 @@ function runAttacks(s,dt){
   if(target&&(canUseSkill(s,11)||s.fusions?.[5])&&s.cooldowns.drain<=0){
     const lv=s.skills[11]||1,fused=!!s.fusions?.[5];
     s.cooldowns.drain=fused?.72:Math.max(.72,1.25-lv*.09);
-    const r=210+lv*22+(fused?55:0),dmg=(18+lv*9)*(fused?1.6:1);
+    const r=130+lv*14+(fused?30:0),dmg=(18+lv*9)*(fused?1.6:1);
     const col=f===0?'#38bdf8':f===1?'#f59e0b':'#f43f5e';
     const victims=queryGridRadius(s,p.x,p.y,r).slice(0,lv+(fused?4:0));
     if(victims.length){
