@@ -4,6 +4,7 @@ async function fullscreen(){
 }
 $('#fullscreen').onclick=fullscreen;
 $('#options').onclick=()=>{
+  $('#campClose').onclick=()=>$('#camp').hidden=true;
   $('#camp').hidden=false;$('#campTitle').textContent='강호 설정';$('#campSub').textContent='조작 · 드래그 / WASD / 방향키 · 경공 SPACE · 일시정지 ESC';
   $('#campContent').innerHTML='<button id="soundToggle" class="training"></button><button id="shakeToggle" class="training"></button><button id="fxToggle" class="training"></button><button id="screenToggle" class="training"><strong>전체 화면으로 플레이 🔲</strong><small>기기와 브라우저에 따라 지원 여부가 다릅니다.</small></button>';
   const paint=()=>{($('#fxToggle').innerHTML='<strong>이펙트 품질 · '+(Profile.data.settings.effects==='low'?'가벼움':'화려함')+'</strong><small>휴대폰이 느리면 가벼움으로 바꿔주세요.</small>');$('#soundToggle').innerHTML='<strong>효과음 '+(Profile.data.settings.sound?'켜짐':'꺼짐')+'</strong><small>선택 시 저장됩니다.</small>';$('#shakeToggle').innerHTML='<strong>화면 흔들림 '+(Profile.data.settings.shake?'켜짐':'꺼짐')+'</strong>'};paint();

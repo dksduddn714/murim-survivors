@@ -3,7 +3,7 @@
 function canUseSkill(s,i){const start=WuxiaUI.SUB_SECTS[selected][subSect].startSkill;return (s.skills[i]||0)>0&&(i!==start||s.skills[i]>=2)}
 function primaryStats(s){
  const id=selected*4+subSect,heavy=[0,3,7].includes(id),ranged=[5,9,10,11].includes(id),swift=[2,6].includes(id),g=s.weaponGrowth||[0,0,0];
- return {id,heavy,ranged,swift,reach:(heavy?84:swift?66:75)+g[1]*11,damage:(heavy?28:swift?18:23)+s.level*1.15+g[0]*7,period:Math.max(.34,(heavy?.92:swift?.56:.72)-g[2]*.05),targets:1+Math.floor(g[1]/2),arc:heavy?1.05:.78};
+ return {id,heavy,ranged,swift,reach:(heavy?84:swift?66:75)+g[1]*11+Equipment.bonus(s,'reach'),damage:(heavy?28:swift?18:23)+s.level*1.15+g[0]*7,period:Math.max(.34,(heavy?.92:swift?.56:.72)-g[2]*.05),targets:1+Math.floor(g[1]/2),arc:heavy?1.05:.78};
 }
 function beginAttack(s,angle){const w=primaryStats(s);s.attack={age:0,duration:Math.min(.46,w.period*.7),phase:1,angle,face:Math.cos(angle)<0?-1:1,weapon:w};}
 function weaponGrowthUpgrade(){
@@ -12,26 +12,14 @@ function weaponGrowthUpgrade(){
  for(let i=0;i<3;i++){if(g[i]>=5)continue;const b=document.createElement('button');b.innerHTML='<span class="wx-sect-badge sig">주력 무기</span><strong>'+labels[i]+' <small>'+g[i]+' → '+(g[i]+1)+'</small></strong><small>'+details[i]+'</small>';b.onclick=()=>{if(mode!=='upgrade')return;g[i]++;(s.cooldowns??={}).innate=0;$('#modal').hidden=true;mode='play';$('#resume').onclick=pause;$('#resume').textContent='계속하기';Sound.play('level');showNotice(labels[i]+' · 다음 공격부터 적용')};$('#choices').append(b)}
  $('#resume').hidden=false;$('#resume').textContent='문파 비급 배우기';$('#resume').onclick=()=>{upgrade(true);$('#resume').textContent='계속하기';$('#resume').onclick=pause};
 }
-function drawWeaponArcs(s){
-  for(const h of s.weaponArcs||[]){
-    const k=h.t/h.max,ease=1-Math.pow(1-k,2),a=h.a,spread=h.arc;
-    ctx.save();ctx.translate(h.x,h.y-10);ctx.rotate(a);ctx.lineCap='round';
-    ctx.globalAlpha=ease*.85;ctx.strokeStyle='#191d28';ctx.lineWidth=9*ease+1.5;
-    ctx.beginPath();ctx.arc(0,0,h.r,-spread,spread);ctx.stroke();
-    ctx.globalAlpha=ease;ctx.strokeStyle=h.color;ctx.lineWidth=5.5*ease+1;
-    ctx.beginPath();ctx.arc(0,0,h.r,-spread*.92,spread);ctx.stroke();
-    ctx.strokeStyle='#fff7df';ctx.lineWidth=2.2*ease;
-    ctx.beginPath();ctx.arc(0,0,h.r-2,-spread*.55,spread*.82);ctx.stroke();
-    ctx.restore();
-  }
-}
+function drawWeaponArcs(s){for(const h of s.weaponArcs||[])JianghuFX.slash(ctx,h.x,h.y-10,h.r,h.a,h.arc,1-h.t/h.max,h.color,Profile.data.settings.effects==='low')}
 
 function updateAttackMotion(s,dt){
  if(s.attack){s.attack.age+=dt;
   if(s.attack.age>=.12&&!s.attack.contact){s.attack.contact=true;const a=s.attack.angle;
    const w=s.attack.weapon||primaryStats(s);
    if(!w.ranged){
-    (s.weaponArcs??=[]).push({x:s.p.x,y:s.p.y,a,r:w.reach,arc:w.arc,t:.18,max:.18,color:factions[selected].color});
+    (s.weaponArcs??=[]).push({x:s.p.x,y:s.p.y,a,r:w.reach,arc:w.arc,t:.3,max:.3,color:factions[selected].color});
     const victims=queryGridRadius(s,s.p.x,s.p.y,w.reach).filter(e=>Math.abs(Math.atan2(Math.sin(Math.atan2(e.y-s.p.y,e.x-s.p.x)-a),Math.cos(Math.atan2(e.y-s.p.y,e.x-s.p.x)-a)))<w.arc).sort((e,o)=>(e.x-s.p.x)**2+(e.y-s.p.y)**2-((o.x-s.p.x)**2+(o.y-s.p.y)**2)).slice(0,w.targets);
     strikeProps(s,a,w.reach,w.damage);
     for(const e of victims)damage(e,w.damage,a,w.heavy?'stomp':'sword');

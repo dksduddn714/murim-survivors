@@ -6,7 +6,7 @@ function hitFeedback(e,n,direction,kind='sword'){
   const a=direction??Math.atan2(e.y-s.p.y,e.x-s.p.x);
   const kMult=kind==='stomp'?1.25:kind==='knife'?.65:kind==='ring'?.85:1;
   const roleResist=e.role==='shield'?.35:e.role==='brute'?.55:1;
-  const force=(e.boss?18:e.elite?48:74)*kMult*roleResist;
+  const force=(e.boss?18:e.elite?48:74)*kMult*roleResist*(1+Equipment.bonus(s,'knock'));
   e.knockX=Math.cos(a)*force;e.knockY=Math.sin(a)*force;e.stun=e.boss?0:(kind==='lightning'||kind==='stomp'?.08:.04);e.hit=.12;if(n>=35&&(s.impactCooldown||0)<=0){s.impactCooldown=.12;s.shake=Math.max(s.shake||0,.055)}
   s.impacts.push({x:e.x,y:e.y-15,a,t:.16,max:.16,large:n>=45||kind==='stomp'||kind==='lightning',kind});
   if(s.impacts.length>65)s.impacts.shift();
@@ -69,6 +69,7 @@ function updateHUD(s,dt){
   $('#pressureFill').style.width=pr.pct+'%';
   $('#pressureValue').textContent=pr.label;
   $('#pressure').classList.toggle('danger',!!pr.danger);
+  LinkSystem.hud(s);
   $('#combo').textContent=s.comboTimer>0&&s.combo>=2?s.combo+' 연참!':'';
   $('.movehint')?.classList.toggle('active',typeof pointer!=='undefined'&&!!pointer);
   const cdMap=[[0,'sword',.52],[1,'knife',Math.max(.2,.54-s.skills[1]*.05)],[3,'stomp',s.thunder?1.15:1.75],[7,'lightning',1.55],[8,'fire',1.1],[9,'ice',1.6],[10,'flail',1.3],[11,'drain',1.25]];

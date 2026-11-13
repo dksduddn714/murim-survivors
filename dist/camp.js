@@ -1,7 +1,7 @@
 'use strict';
 const trainingInfo={vitality:['금강심법','시작 체력 +10 / 단계'],power:['검술 연마','모든 피해 +5% / 단계'],fortune:['흡기공','내공 획득 범위 +14 / 단계'],mobility:['신행백변','이속 +4 · 경공 재사용 −0.1초 / 단계'],destiny:['기연심법','매 출도 비급 재추첨 +1회 · 구매 회복 효과 +5% / 단계'],origin:['무극내공','시작 문파 비급 +1성 / 단계 (최대 5성)'],recovery:['운기조식','20초마다 체력 +1 / 단계']};
 function openCamp(page='training'){
-  $('#camp').hidden=false;$('#campTitle').textContent=page==='training'?'다음 출도를 위한 수련':'강호행 기록';const box=$('#campContent');box.innerHTML='';
+  $('#campClose').onclick=()=>$('#camp').hidden=true;$('#camp').hidden=false;$('#campTitle').textContent=page==='training'?'다음 출도를 위한 수련':'강호행 기록';const box=$('#campContent');box.innerHTML='';
   if(page==='training'){
     $('#campSub').textContent='보유 은전 '+Profile.data.silver+' · 수련은 모든 세력에 적용됩니다';
     for(const [id,[name,detail]] of Object.entries(trainingInfo)){

@@ -42,3 +42,11 @@ Exact source paths and Git blob hashes: `dist/samples/sources.json`. CC0 text an
 `dist/assets/peddler.png`: generated specifically for this project with OpenAI image generation; not a third-party downloaded sprite pack. Prompt: friendly chibi traveling wuxia bundle peddler, straw hat, teal patched tunic, indigo bundle, scrolls and medicine gourd, transparent pixel-art sprite. Used as a static in-world character with a small idle bob. ItemArt in `jianghu.js` is original code-drawn pixel artwork. Procedural BGM in `sound.js` uses local oscillator synthesis and no sampled or licensed recording.
 
 `dist/assets/medicine-gourd.png` (v1.10): newly generated for this project with OpenAI image generation. Prompt: single traditional jade ceramic double-lobed medicine gourd, red cloth stopper and gold cord, transparent chunky pixel-art inventory icon, no medical cross. Used as the heal pickup and shop icon. Not an externally downloaded asset.
+
+## PixelFx adapted helpers (v1.11)
+
+- Source: https://github.com/patch-gg/pixelfx at `5294518ce7c72e48b6100a744596e0acf57f2826`.
+- Adapted `src/fx/melee/sword-slash.js` (tilted ellipse and crescent timing; upstream credits Hugo Duprez's Sprite Fusion slash) and copied `src/fx/arcane/_lib.js` GLYPHS (original rune matrices).
+- MIT: Copyright (c) 2026 Patch; Copyright (c) 2026 Hugo Duprez. Full text `dist/vendor/PixelFx-LICENSE.txt`.
+- Local modified helper `dist/vendor/jianghu-fx.js`. The gallery font and other artwork are not included.
+- User-supplied v1.8.9 pixel goods/peddler drawing retained in `dist/vendor/latest-pixel-items.js`.

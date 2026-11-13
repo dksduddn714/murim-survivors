@@ -2,7 +2,7 @@
 // Encounter-local inventory; only the current level's unspent experience is currency.
 function merchantOffers(s){
   const pool=[
-    ...Equipment.slots.map(slot=>{const item=Equipment.roll(s.time);item.slot=slot;item.name=Equipment.name(item);return {name:Equipment.grades[item.rank].name+' '+item.name,text:Equipment.text(item)+' · 기존 장비와 교체',kind:'equipment',item}}),
+    ...Equipment.slots.map(slot=>{const item=Equipment.roll(s.time,Math.random,slot);return {name:Equipment.grades[item.rank].name+' '+item.name,text:Equipment.text(item)+' · 기존 장비와 교체',kind:'equipment',item}}),
     {name:'금창약',text:'체력 '+Math.round(45*(1+Profile.data.training.destiny*.05))+' 회복 · 최대 체력 +10',kind:'potion'},
     {name:'소환단',text:'현재 내공 +8 · 구매 후 돌파에 사용',kind:'qi'},
     {name:'흡성부',text:'현재 바닥의 경험치를 전부 회수',kind:'magnet'},
@@ -32,8 +32,8 @@ function openMerchant(){
   $('#modalTitle').textContent='현재 경험치 '+Math.floor(s.xp)+' / '+s.need+' 전부로 하나 구매';
   $('#choices').innerHTML='';$('#choices').classList.add('merchant-choices');
   m.offers.forEach((o,i)=>{
-    const b=document.createElement('button');if(o.kind==='equipment')b.style.borderColor=Equipment.grades[o.item.rank].color;b.disabled=!(s.xp>0)||(o.kind==='equipment'&&s.equipment[o.item.slot]&&s.equipment[o.item.slot].rank>=o.item.rank);
-    b.innerHTML=ItemArt.html(o.kind==='equipment'?Equipment.art(o.item):o.kind==='potion'?'heal':o.kind)+'<small>상품 '+(i+1)+'</small><strong>'+o.name+'</strong><small>'+o.text+'</small><small>대가: 현재 경험치 전부 · 레벨 유지</small>';
+    const b=document.createElement('button');if(o.kind==='equipment')b.style.borderColor=Equipment.grades[o.item.rank].color;b.disabled=!(s.xp>0)||(o.kind==='equipment'&&!Equipment.canEquip(s,o.item));
+    b.innerHTML=(o.kind==='skill'?WuxiaUI.skillIcon(o.slot,true,selected):ItemArt.html(o.kind==='equipment'?Equipment.art(o.item):o.kind==='potion'?'heal':o.kind))+'<small>상품 '+(i+1)+'</small><strong>'+o.name+'</strong><small>'+o.text+'</small><small>대가: 현재 경험치 전부 · 레벨 유지</small>';
     b.onclick=()=>buyMerchant(i);$('#choices').append(b);
   });
   $('#again').hidden=true;$('#retry').hidden=true;$('#resume').hidden=false;
@@ -45,7 +45,7 @@ function buyMerchant(index){
   const s=state,m=s?.merchant,o=m?.offers[index];
   if(mode!=='shop'||!m||m.bought||!o||!(s.xp>0))return false;
   // Commit once before effects; queued clicks cannot buy again.
-  if(o.kind==='equipment'&&!Equipment.equip(s,o.item))return false;
+  if(o.kind==='equipment'&&!Equipment.purchase(s,o.item))return false;
   m.bought=true;s.xp=0;
   if(o.kind==='potion'){s.p.max+=10;s.p.hp=Math.min(s.p.max,s.p.hp+45*(1+Profile.data.training.destiny*.05))}
   if(o.kind==='qi')s.xp+=8;
@@ -57,8 +57,7 @@ function drawMerchant(s){
   const m=s.merchant;if(!m)return;
   ctx.save();ctx.translate(Math.round(m.x),Math.round(m.y));
   ctx.fillStyle='#233c3544';ctx.beginPath();ctx.ellipse(0,4,20,7,0,0,7);ctx.fill();
-  if(peddlerImage?.complete&&peddlerImage.naturalWidth){const bob=Math.round(Math.sin(s.time*2));ctx.imageSmoothingEnabled=true;const height=72,width=height*peddlerImage.naturalWidth/peddlerImage.naturalHeight;ctx.drawImage(peddlerImage,-width/2,-height+8+bob,width,height)}
-  else{ItemArt.draw(ctx,'skill',12,-15,32);WuxiaSprites.drawHero(ctx,0,0,0,0,0,3,{moving:false,clock:0,face:1,attackPhase:0})}
+  const cv=getItemCanvas(m.bought?'merchant_done':'merchant_active');ctx.imageSmoothingEnabled=false;ctx.drawImage(cv,-32,-58,64,64);
   ctx.textAlign='center';ctx.font='bold 12px sans-serif';ctx.fillStyle='#ffedb3';ctx.fillText(m.bought?'거래 완료':'떠돌이 상인',0,-68);ctx.restore();
 }
 $('#trade').onclick=openMerchant;

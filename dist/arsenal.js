@@ -8,7 +8,7 @@ function chooseBattle(id){
   const sm=$('#startSmall');
   if(sm)sm.textContent=id==='hell'?'지옥의 포위망에 도전합니다':'강호가 당신을 기다립니다';
 }
-$('#fxDemo').onclick=()=>{Sound.unlock();start();state.demo=true;state.skills=[5,5,5,5,2,2,5,5,5,5,0,0];state.p.hp=state.p.max=700;syncSkills();VFX.cast('evolution',state.p.x,state.p.y,{r:180,color:'#ffdfa0'});showNotice('합벽절학 연출 체험 · 45초 · 은전과 전적에 반영되지 않습니다');};
+$('#fxDemo').onclick=()=>{Sound.unlock();start();state.demo=true;state.skills=Array(12).fill(3);state.p.hp=state.p.max=700;syncSkills();VFX.cast('evolution',state.p.x,state.p.y,{r:180,color:'#ffdfa0'});showNotice('합벽절학 연출 체험 · 45초 · 은전과 전적에 반영되지 않습니다');};
 function skillTiles(){
   const s=state;if(!s)return;
   const fIdx=typeof selected!=='undefined'?selected:0;
