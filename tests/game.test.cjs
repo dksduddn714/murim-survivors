@@ -244,3 +244,9 @@ test('medicine drops use low-health odds and a shared cooldown without guarantee
 test('equipment set bonuses switch off on replacement rather than accumulate',()=>{
  const h=harness();h.run("start();Equipment.equip(state,{slot:'weapon',variant:'spear',rank:0});Equipment.equip(state,{slot:'armor',variant:'leather',rank:0})");assert.equal(h.run('Equipment.bonus(state,"reach")'),14);h.run("Equipment.equip(state,{slot:'armor',variant:'robe',rank:0})");assert.equal(h.run('Equipment.bonus(state,"reach")'),8);
 });
+test('tempo: opening enemies arrive nearby, movement remains real-time and fast attacks retain a windup',()=>{
+ const h=harness();h.run('selected=0;subSect=2;start();state.props=[]');assert.ok(h.run('state.enemies.every(e=>Math.hypot(e.x,e.y)>=159&&Math.hypot(e.x,e.y)<=241)'));assert.ok(h.run('primaryStats(state).windup')<.1);h.run('state.enemies=[];state.spawn=state.siegeNext=999;keys.d=true;update(.1)');assert.equal(h.run('state.p.x'),18);h.run('keys={};const foe={x:100,y:0,hp:10000,max:10000,f:1,role:"disciple",speed:50,fire:999};state.enemies=[foe];state.skills.fill(0);state.sect.cooldown=999;state.impactBeat=.05;update(.01)');assert.ok(h.run('foe.x')<99.6);
+});
+test('experience pull uses exponential time steps with equal outcomes at equal real time',()=>{
+ function sample(dt){const h=harness();h.run('start();state.skills.fill(0);state.sect.cooldown=999;state.enemies=[];state.spawn=state.siegeNext=999;state.props=[];state.gems=[{x:100,y:0,value:1}];state.need=999');for(let i=0;i<Math.round(.1/dt);i++)h.run(`update(${dt})`);return h.run('state.gems[0].x')};assert.ok(Math.abs(sample(.05)-sample(.01))<.001);
+});
