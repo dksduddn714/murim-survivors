@@ -1,6 +1,7 @@
 'use strict';
 // Rank-3 links add six limited, telegraphed attacks; legacy 5+5 fusions remain.
 const LinkSystem=(()=>{
+ let goal=-1;
  const recipes=[
  {a:0,b:7,type:'storm',cd:10,names:['천룡검우','혈룡참뢰','천마혈뢰'],text:'표적 3명 · 차례로 검뢰 낙하',color:'#a8e8f2'},
  {a:1,b:6,type:'petals',cd:9,names:['자하만개','독영만화','귀염만개'],text:'표식 3개 · 지연 개화 · 폭발당 최대 3명',color:'#edb3de'},
@@ -36,7 +37,7 @@ const LinkSystem=(()=>{
    else{for(let j=0;j<(low?3:6);j++){const a=t*4+j*6.28/(low?3:6);JianghuFX.slash(ctx,f.x+Math.cos(a)*30,f.y-18+Math.sin(a)*15,70,a,1.8,(t*.6+j*.12)%1,r.color,low)}}
   }ctx.restore();
  }
- function hud(s){const q=ensure(s),n=q.known.filter(Boolean).length;$('#linkButton').textContent='연계 '+n+'/6 [J]';const next=recipes.map((r,i)=>({r,i,score:Math.min(3,s.skills[r.a])+Math.min(3,s.skills[r.b])})).filter(o=>!q.known[o.i]).sort((a,b)=>b.score-a.score)[0];$('#linkHint').textContent=next?next.r.names[selected]+' · '+Math.min(3,s.skills[next.r.a])+'/3 + '+Math.min(3,s.skills[next.r.b])+'/3':n?'연계 완성 · 자동 발동':'3성 무공 두 개로 연계 개방'}
- function open(){if(mode!=='play'&&mode!=='menu')return;const playing=mode==='play';if(playing)pause();const s=state||{skills:Array(12).fill(0)},q=s.links;$('#camp').hidden=false;$('#campTitle').textContent='연계 무공 · 세력별 6식';$('#campSub').textContent='두 무공 각각 3성 → 자동 연계 / 기존 5성 + 5성 합벽은 유지 · 동시 난사 제한';$('#campContent').innerHTML=recipes.map((r,i)=>{const a=Math.min(3,s.skills[r.a]),b=Math.min(3,s.skills[r.b]),ready=q?.known[i];return '<article class="link-card '+(ready?'ready':'')+'"><span class="link-number">0'+(i+1)+'</span><div><small>'+(ready?'개방 완료':'3성 + 3성')+'</small><h3>'+r.names[selected]+'</h3><p>'+names[r.a]+' <b>'+a+'/3</b> ＋ '+names[r.b]+' <b>'+b+'/3</b></p><small>'+r.text+' · '+r.cd+'초</small></div></article>'}).join('');$('#campClose').onclick=()=>{$('#camp').hidden=true;if(playing&&mode==='pause')pause()}}
- return {recipes,init,ensure,sync,cast,update,block,draw,hud,open};
+ function hud(s){const q=ensure(s),n=q.known.filter(Boolean).length;$('#linkButton').textContent='연계 '+n+'/6 [J]';const next=recipes.map((r,i)=>({r,i,score:Math.min(3,s.skills[r.a])+Math.min(3,s.skills[r.b])})).filter(o=>!q.known[o.i]).sort((a,b)=>(b.i===goal?100:0)+b.score-((a.i===goal?100:0)+a.score))[0];$('#linkHint').textContent=next?next.r.names[selected]+' · '+Math.min(3,s.skills[next.r.a])+'/3 + '+Math.min(3,s.skills[next.r.b])+'/3':n?'연계 완성 · 자동 발동':'3성 무공 두 개로 연계 개방'}
+ function open(){if(mode!=='play'&&mode!=='menu')return;const playing=mode==='play';if(playing)pause();const s=state||{skills:Array(12).fill(0)},q=s.links;$('#camp').hidden=false;$('#campTitle').textContent='연계 무공 · 세력별 6식';$('#campSub').textContent='두 무공 각각 3성 → 자동 연계 / 기존 5성 + 5성 합벽은 유지 · 동시 난사 제한';$('#campContent').innerHTML=recipes.map((r,i)=>{const a=Math.min(3,s.skills[r.a]),b=Math.min(3,s.skills[r.b]),ready=q?.known[i];return '<article class="link-card '+(ready?'ready':'')+'"><span class="link-number">0'+(i+1)+'</span><div><small>'+(ready?'개방 완료':'3성 + 3성')+'</small><h3>'+r.names[selected]+'</h3><p>'+names[r.a]+' <b>'+a+'/3</b> ＋ '+names[r.b]+' <b>'+b+'/3</b></p><small>'+r.text+' · '+r.cd+'초</small><button class="goal-button" data-link-goal="'+i+'">'+(goal===i?'목표로 선택됨':'이 연계를 목표로')+'</button></div></article>'}).join('');$('#campContent').querySelectorAll('[data-link-goal]').forEach(b=>b.onclick=()=>{goal=+b.dataset.linkGoal;$('#campContent').querySelectorAll('[data-link-goal]').forEach(x=>x.textContent=+x.dataset.linkGoal===goal?'목표로 선택됨':'이 연계를 목표로')});$('#campClose').onclick=()=>{$('#camp').hidden=true;if(playing&&mode==='pause')pause()}}
+ return {recipes,get goal(){return goal},init,ensure,sync,cast,update,block,draw,hud,open};
 })();

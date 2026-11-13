@@ -13,3 +13,5 @@ $('#postTraining').onclick=()=>{if(mode==='end'&&!state.demo)openCamp('training'
 
 $('#bagButton').onclick=()=>Equipment.open();$('#linkButton').onclick=()=>LinkSystem.open();$('#linkGuide').onclick=()=>LinkSystem.open();
 addEventListener('keydown',e=>{if(e.repeat||!$('#camp').hidden)return;if(e.key.toLowerCase()==='b')Equipment.open();if(e.key.toLowerCase()==='j')LinkSystem.open()});
+
+$('#supplies').onclick=()=>Progression.open('supplies');$('#ranking').onclick=()=>Progression.open('ranking');

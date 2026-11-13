@@ -1,5 +1,5 @@
 'use strict';
-window.MURIM_VERSION='1.12.0';
+window.MURIM_VERSION='1.13.0';
 const survivalTimeLimit=300;
 const $=s=>document.querySelector(s),c=$('#world'),ctx=c.getContext('2d');let W,H,dpr;function resize(){dpr=1;W=innerWidth;H=innerHeight;c.width=W*dpr;c.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.imageSmoothingEnabled=false}addEventListener('resize',resize);resize();
 const factions=[{name:'정파',color:'#38bdf8',enemy:[1,2],weapon:'태극·매화·금강·항룡'},{name:'사파',color:'#f43f5e',enemy:[0,2],weapon:'혈도·독공·귀영·녹림'},{name:'마교',color:'#c084fc',enemy:[0,1],weapon:'천마·혈마·귀마·흑염'}];let selected=0,subSect=0,mode='menu',state=null,keys={},pointer=null,last=0,ambient=0;
@@ -93,6 +93,7 @@ addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if([' ','ArrowUp',
 c.addEventListener('pointerdown',e=>{if(mode==='play'&&!pointer){pointer={id:e.pointerId,x:e.clientX,y:e.clientY,dx:0,dy:0};c.setPointerCapture(e.pointerId)}});c.addEventListener('pointermove',e=>{if(pointer&&pointer.id===e.pointerId){pointer.dx=e.clientX-pointer.x;pointer.dy=e.clientY-pointer.y}});function release(){pointer=null}c.addEventListener('pointerup',release);c.addEventListener('pointercancel',release);
 function movement(){let x=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0),y=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);if(pointer){x=Math.abs(pointer.dx)>5?pointer.dx/42:0;y=Math.abs(pointer.dy)>5?pointer.dy/42:0}let l=Math.hypot(x,y);return l>0?{x:x/Math.max(1,l),y:y/Math.max(1,l)}:{x:0,y:0}}
 function skillDelta(i,cur,next){
+ if(i===4)return '최대 체력 +'+(cur===0?12:6)+' · 즉시 회복 +18 · 보조 무기 강화';
  if(cur===0)return '새 무공 해금 · '+skillDelta(i,1,2).split(' → ')[0]+'부터 시작';
  if(i===0)return '검기 '+(1+Math.floor(cur/2))+' → '+(1+Math.floor(next/2))+'발 · 타격 '+(22+cur*9)+' → '+(22+next*9);
  if(i===1)return '비도 '+(1+Math.floor(Math.max(0,cur-1)*.6))+' → '+(1+Math.floor(Math.max(0,next-1)*.6))+'발 · 타격 '+(17+cur*7)+' → '+(17+next*7);
@@ -118,7 +119,7 @@ function upgrade(forceGeneral=false){$('#trade').hidden=true;
   if(signature!==undefined&&!options.some(i=>sigSet.has(i)))options[options.length-1]=signature;
   // Keep a growth option visible, rather than repeatedly diluting the build with new arts.
   const owned=pool.find(i=>state.skills[i]>0);if(owned!==undefined&&!options.some(i=>state.skills[i]>0)){const slot=options.findIndex(i=>!sigSet.has(i));if(slot>=0)options[slot]=owned}
-  const partner=LinkSystem.recipes.flatMap(r=>state.skills[r.a]>=2&&state.skills[r.b]<3?[r.b]:state.skills[r.b]>=2&&state.skills[r.a]<3?[r.a]:[]).find(i=>pool.includes(i)&&!options.includes(i));
+  const partner=LinkSystem.recipes.map((r,i)=>({r,i})).sort((a,b)=>(b.i===LinkSystem.goal?1:0)-(a.i===LinkSystem.goal?1:0)).map(o=>o.r).flatMap(r=>state.skills[r.a]>=2&&state.skills[r.b]<3?[r.b]:state.skills[r.b]>=2&&state.skills[r.a]<3?[r.a]:[]).find(i=>pool.includes(i)&&!options.includes(i));
   if(partner!==undefined){const slot=options.findIndex(i=>!sigSet.has(i)&&i!==owned);if(slot>=0)options[slot]=partner}
   if(!options.length){state.p.hp=Math.min(state.p.max,state.p.hp+35);mode='play';$('#modal').hidden=true;showNotice('운기조식 · 체력 +35');return}
   $('#choices').innerHTML='';
@@ -148,7 +149,7 @@ function upgrade(forceGeneral=false){$('#trade').hidden=true;
     $('#choices').append(b);
   });
 }
-function end(win){$('#trade').hidden=true;if(mode==='end')return;state.hudClock=0;updateHUD(state,0);Sound.play('end');const reward=state.demo?0:Profile.finish({faction:selected,kills:state.kills,time:Math.floor(state.time),subSect,win});updateProfile();mode='end';$('#modal').hidden=false;$('#modalEyebrow').textContent=win?'강호에 이름을 새기다':'다시 일어설 시간';$('#modalTitle').textContent=state.demo?'무공 연출 체험 종료':win?'포위망 돌파!':'강호는 아직 넓습니다';$('#choices').innerHTML='<div class="resultstats"><div><b>'+state.kills+'</b><small>격파</small></div><div><b>'+format(state.time)+'</b><small>생존 시간</small></div><div><b>'+state.bestCombo+'</b><small>최고 연속 격파</small></div></div><p class="reward">은전 +'+reward+' · '+(state.demo?'체험 기록은 저장되지 않습니다':'모은 은전으로 영구 수련을 이어가세요')+'</p><p id="postBalance" class="gear-note"></p>';$('#again').hidden=false;$('#resume').hidden=true;$('#retry').hidden=false;$('#reroll').hidden=true;paintPostRunTraining()}
+function end(win){$('#trade').hidden=true;if(mode==='end')return;state.hudClock=0;updateHUD(state,0);Sound.play('end');const reward=state.demo?0:Profile.finish({faction:selected,kills:state.kills,time:Math.floor(state.time),subSect,win,battle:battleMode,stage:stageId,assisted:!!state.assisted,training:Object.values(Profile.data.training).reduce((a,b)=>a+b,0)});updateProfile();mode='end';$('#modal').hidden=false;$('#modalEyebrow').textContent=win?'강호에 이름을 새기다':'다시 일어설 시간';$('#modalTitle').textContent=state.demo?'무공 연출 체험 종료':win?'포위망 돌파!':'강호는 아직 넓습니다';$('#choices').innerHTML='<div class="resultstats"><div><b>'+state.kills+'</b><small>격파</small></div><div><b>'+format(state.time)+'</b><small>생존 시간</small></div><div><b>'+state.bestCombo+'</b><small>최고 연속 격파</small></div></div><p class="reward">은전 +'+reward+' · '+(state.demo?'체험 기록은 저장되지 않습니다':'모은 은전으로 영구 수련을 이어가세요')+'</p><p id="postBalance" class="gear-note"></p>';$('#again').hidden=false;$('#resume').hidden=true;$('#retry').hidden=false;$('#reroll').hidden=true;paintPostRunTraining()}
 function pickEnemyRole(t,boss,elite){
   if(boss)return 'boss';
   const r=Math.random();
@@ -204,7 +205,7 @@ function damage(e,n,direction,kind='sword'){
     const gemVal=e.boss?28:e.siegeLeader?14:e.elite?5:(e.role==='shield'||e.role==='brute'||e.role==='sorcerer')?2:1;
     state.gems.push({x:e.x,y:e.y,value:gemVal});
     dropTreasure(state,e);
-    if(e.siegeLeader||Math.random()<0.032)state.drops.push({x:e.x,y:e.y,type:e.siegeLeader?'heal':['heal','qi','magnet'][Math.floor(Math.random()*3)]});
+    dropSupplies(state,e);
     if(e.final)state.bossDead=true;
     if(selected===2&&subSect===1)state.p.hp=Math.min(state.p.max,state.p.hp+.1);
     if(!state._chainLock){
@@ -227,7 +228,7 @@ function damage(e,n,direction,kind='sword'){
     }
   }
 }
-function update(dt){let s=state,p=s.p,v=movement();s.moving=!!(v.x||v.y);if(s.moving){s.facing=v;s.walkTime=(s.walkTime||0)+dt;if(v.x)s.face=v.x<0?-1:1}s.time+=dt;let wave=Math.floor(s.time/60);if(wave>s.wave){s.wave=wave;for(let i=0;i<14;i++)if(s.enemies.length<battle().cap)spawn();showNotice(['','추격대와 장창병이 합류합니다','중갑방패병·정예 무인 출현','술사와 역사 포위망이 좁혀집니다','장로 출현 · 제한 시간 안에 처치'][Math.min(4,wave)])}s.shake=Math.max(0,s.shake-dt);s.hitFlash=Math.max(0,s.hitFlash-dt);s.dash-=dt;s.inv-=dt;updateJianghu(s,dt);if(mode!=='play')return;const moveSpd=165+Profile.data.training.mobility*4+Equipment.bonus(s,'speed')+s.skills[5]*15+(s.fusions?.[5]?22:0)+(selected===1?12+(subSect===2?8:0):0);p.x+=v.x*moveSpd*dt;p.y+=v.y*moveSpd*dt;keepInArena(p);s.spawn-=dt;if(s.spawn<=0){for(let i=0;i<(battleMode==='blood'&&s.time<20?3:battle().batch+Math.floor(s.time/36));i++)if(s.enemies.length<battle().cap)spawn();s.spawn=battleMode==='blood'&&s.time<20?.38:Math.max(.11,battle().interval-s.time/1500)}if(s.time>=110&&!s.miniboss){s.miniboss=true;summonBoss(false)}if(s.time>=240&&!s.boss){s.boss=true;summonBoss(true)}if(s.demo&&s.time>=45){end(false);return}if(s.time>=300){end(!s.boss||!!s.bossDead);return}
+function update(dt){let s=state,p=s.p,v=movement();Progression.update(s);s.moving=!!(v.x||v.y);if(s.moving){s.facing=v;s.walkTime=(s.walkTime||0)+dt;if(v.x)s.face=v.x<0?-1:1}s.time+=dt;let wave=Math.floor(s.time/60);if(wave>s.wave){s.wave=wave;for(let i=0;i<14;i++)if(s.enemies.length<battle().cap)spawn();showNotice(['','추격대와 장창병이 합류합니다','중갑방패병·정예 무인 출현','술사와 역사 포위망이 좁혀집니다','장로 출현 · 제한 시간 안에 처치'][Math.min(4,wave)])}s.shake=Math.max(0,s.shake-dt);s.hitFlash=Math.max(0,s.hitFlash-dt);s.dash-=dt;s.inv-=dt;updateJianghu(s,dt);if(mode!=='play')return;const moveSpd=165+Profile.data.training.mobility*4+Equipment.bonus(s,'speed')+s.skills[5]*15+(s.fusions?.[5]?22:0)+(selected===1?12+(subSect===2?8:0):0);p.x+=v.x*moveSpd*dt;p.y+=v.y*moveSpd*dt;keepInArena(p);s.spawn-=dt;if(s.spawn<=0){for(let i=0;i<(battleMode==='blood'&&s.time<20?3:battle().batch+Math.floor(s.time/36));i++)if(s.enemies.length<battle().cap)spawn();s.spawn=battleMode==='blood'&&s.time<20?.38:Math.max(.11,battle().interval-s.time/1500)}if(s.time>=110&&!s.miniboss){s.miniboss=true;summonBoss(false)}if(s.time>=240&&!s.boss){s.boss=true;summonBoss(true)}if(s.demo&&s.time>=45){end(false);return}if(s.time>=300){end(!s.boss||!!s.bossDead);return}
 const camTargetX=p.x+(v.x||0)*18,camTargetY=p.y+(v.y||0)*14,camLerp=1-Math.exp(-16*dt);
 s.camX=s.camX===undefined?p.x:s.camX+(camTargetX-s.camX)*camLerp;
 s.camY=s.camY===undefined?p.y:s.camY+(camTargetY-s.camY)*camLerp;
